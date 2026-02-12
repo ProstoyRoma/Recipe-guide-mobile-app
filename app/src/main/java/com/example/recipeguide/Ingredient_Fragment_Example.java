@@ -2,6 +2,7 @@ package com.example.recipeguide;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -56,14 +57,69 @@ public class Ingredient_Fragment_Example extends Fragment {
             Bundle bundle = getArguments();
             if (bundle != null) {
 
-                String ingredients = bundle.getString("dish_ingredients");
-
+                String ingredientsRaw = bundle != null ? bundle.getString("dish_ingredients") : null;
                 TextView ingredientsTextView = view.findViewById(R.id.ingredients_dish);
-
-                // Отображаем данные
-                ingredientsTextView.setText(ingredients);
+                ingredientsTextView.setText(formatIngredientsForDisplay(ingredientsRaw));
             }
 
             return view;
         }
+    private String formatIngredientsForDisplay(@Nullable String raw) {
+        if (raw == null) return "";
+
+        StringBuilder out = new StringBuilder();
+        String[] lines = raw.split("\\r?\\n");
+        for (String line : lines) {
+            if (line == null) continue;
+            line = line.trim();
+            if (line.isEmpty()) continue;
+
+            int dotIdx = line.indexOf('.');
+            String prefix = "";
+            String rest = line;
+            if (dotIdx > 0) {
+                prefix = line.substring(0, dotIdx + 1).trim(); // "1."
+                rest = line.substring(dotIdx + 1).trim();      // "Название|qty|measure"
+            }
+
+            String[] parts = rest.split("\\|", -1);
+            String name = parts.length > 0 ? parts[0].trim() : "";
+            String qty  = parts.length > 1 ? parts[1].trim() : "";
+            String unit = parts.length > 2 ? parts[2].trim() : "";
+
+            if (name.isEmpty()) continue;
+
+            // Капитализируем первую букву названия, сохраняя остальной текст
+            name = capitalizeFirstLetter(name);
+
+            String rightPart = "";
+            if (!qty.isEmpty() && !unit.isEmpty()) {
+                rightPart = qty + " " + unit;
+            } else if (!qty.isEmpty()) {
+                rightPart = qty;
+            } else if (!unit.isEmpty()) {
+                rightPart = unit;
+            }
+
+            if (out.length() > 0) out.append('\n');
+
+            if (!rightPart.isEmpty()) {
+                out.append(prefix.isEmpty() ? "" : (prefix + " "));
+                out.append(name).append(" \u2014 ").append(rightPart);
+            } else {
+                out.append(prefix.isEmpty() ? "" : (prefix + " "));
+                out.append(name);
+            }
+        }
+        return out.toString();
     }
+
+    private String capitalizeFirstLetter(String s) {
+        if (s == null || s.isEmpty()) return s;
+        int firstCodePoint = s.codePointAt(0);
+        int firstCharLen = Character.charCount(firstCodePoint);
+        String first = new String(Character.toChars(Character.toUpperCase(firstCodePoint)));
+        if (s.length() == firstCharLen) return first;
+        return first + s.substring(firstCharLen);
+    }
+}

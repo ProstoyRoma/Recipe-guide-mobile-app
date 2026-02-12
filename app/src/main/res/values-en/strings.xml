@@ -33,15 +33,130 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="subject">Support Request</string>
+    <string name="choose_language">"Вы выбрали: "</string>
+    <string name="choose_lang">Choose language:</string>
     <string name="body">Your message</string>
     <string name="policy_message">Do you want to download the file?</string>
     <string name="successful_saving_policy">File saved to Downloads: </string>
     <string name="unsuccessful_saving_policy">Failed to download the file</string>
     <string name="no_email_client">No email client found</string>
+    <string name="prepared">Cooked</string>
+    <string name="cooked_message">The dish has been saved in your personal account</string>
+
+
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="registration">Регистрация</string>
-    <string name="sign_in">Войти</string>
+    <string name="registration">Registration</string>
+    <string name="sign_in">Sign in</string>
+    <string name="my_acc">My account</string>
+    <string name="language">Language</string>
+    <string name="or">Or</string>
+    <string name="log_in">Log in</string>
+    <string name="personal_acc">Personal account</string>
+    <string name="my_recipes">My recipes</string>
+    <string name="edit_profile">Edit profile</string>
+    <string name="log_out">Log out</string>
+    <string name="input_email">Enter email</string>
+    <string name="input_usermane">Enter username</string>
+    <string name="input_password">Enter password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="username">Username</string>
+    <string name="select_image">Select an image</string>
+    <string name="validation_no_image">The image is not a dish</string>
+    <string name="load_recipes">Uploaded recipes: </string>
+    <string name="load_recipes_intent">Uploaded recipes from Intent: </string>
+    <string name="no_dishes">There is no data to load, `dishes` remains `null`</string>
+    <string name="error_loaded">Error loaded: </string>
+    <string name="error_email_empty">Please enter your Email</string>
+    <string name="error_email">Please enter the correct Email address</string>
+    <string name="error_username">Please enter your username</string>
+    <string name="error_password_empty">Please enter the password</string>
+    <string name="error_password">The password must be at least 6 characters long</string>
+    <string name="error_confirmpassw_empty">Please confirm your password</string>
+    <string name="errror_confirmpassw">Passwords don`t match</string>
+    <string name="user">"User "</string>
+    <string name="success_signin">" successfully sign in"</string>
+    <string name="authentication_failed">Authentication failed</string>
+    <string name="enter_account">Log in</string>
+    <string name="error_load_image">Image upload error</string>
+    <string name="error_translate">"Error loading the translation model: "</string>
+    <string name="notification_permission">Notification permission denied</string>
+    <string name="error_pdf">Error when creating PDF</string>
+    <string name="category">Category: </string>
+    <string name="category_promt">Choose</string>
+
+    <string name="category_appetizers">Appetizers</string>
+    <string name="category_soup">Soup</string>
+    <string name="category_salad">Salad</string>
+    <string name="category_main_course">Main course</string>
+    <string name="category_side_dish">Side dish</string>
+    <string name="category_dessert">Dessert</string>
+    <string name="category_drink">Drink</string>
+    <string name="category_sauces_and_seasonings">Sauces and seasonings</string>
+    <string name="category_baked_goods">Baked Goods</string>
+    <string name="category_snacks">Snacks</string>
+    <string name="good_save">The recipe has been saved in your personal account</string>
+    <string name="add_ingredient">Add ingredient</string>
+    <string name="ingredient">Indredient</string>
+    <string name="qty">qty</string>
+    <string name="unit">Unit</string>
+    <string name="cooked">Cooked</string>
+    <string name="cold_start_hint">To improve recommendations, rate several cards</string>
+    <string name="cold_start_hint2">Move the card to the side\nRight - like, left - dislike</string>
+    <string name="cold_start_thanks_message">Thank you for your choice and time</string>
+    <string name="cold_start_btn_complete">Done</string>
+    <string name="cold_start_later">Later</string>
+    <string name="question_type_dish">What types of dishes do you prefer?</string>
+    <string name="cb_italy">Italian</string>
+    <string name="cb_japan">Japanese</string>
+    <string name="cb_china">Chinese</string>
+    <string name="cb_russia">Russian</string>
+    <string name="cb_thailand">Thai</string>
+    <string name="cb_france">French</string>
+    <string name="cb_mexico">Mexican</string>
+    <string name="cb_spain">Spanish</string>
+    <string name="cb_turkey">Turkish</string>
+    <string name="cb_greece">Greek</string>
+    <string name="cb_other">Other:</string>
+    <string name="enter_other">Enter here</string>
+    <string name="choose_like_kitchen">Choose your favorite cuisines</string>
+    <string name="no_diet">I don\'t follow a specific diet.</string>
+    <string name="paleo_diet">Paleo Diet</string>
+    <string name="dash_diet">DASH Diet</string>
+    <string name="keto_diet">Keto Diet</string>
+    <string name="gluten_free">Gluten-Free Diet</string>
+    <string name="low_carb">Low-Carb Diet</string>
+    <string name="veganism">Veganism</string>
+    <string name="vegetarianism">Vegetarianism</string>
+    <string name="mediterranean">Mediterranean Diet</string>
+    <string name="question_diet">Do you follow a certain diet?</string>
+    <string name="no_allergy">No food allergies or restrictions</string>
+    <string name="wheat">Wheat</string>
+    <string name="soy">Soy</string>
+    <string name="shellfish">Shellfish</string>
+    <string name="fish">Fish</string>
+    <string name="peanuts">Peanuts</string>
+    <string name="nuts">Nuts</string>
+    <string name="eggs">Eggs</string>
+    <string name="milk">Milk</string>
+    <string name="question_allergy">What foods/allergens would you like to exclude from the recommendations?</string>
+    <string name="title_questionnaire">Help us get to know you better!</string>
+
+    <string-array name="categories_array">
+        <item>Select</item>
+        <item>Appetizers</item>
+        <item>Soup</item>
+        <item>Salad</item>
+        <item>Main course</item>
+        <item>Side dish</item>
+        <item>Dessert</item>
+        <item>Drink</item>
+        <item>Sauces and seasonings</item>
+        <item>Baked Goods</item>
+        <item>Snacks</item>
+    </string-array>
+
+
 
 </resources>

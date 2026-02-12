@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fl_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+
+    <TextView
+        android:id="@+id/tv_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:layout_marginTop="15dp"
+        android:padding="10dp"
+        android:textSize="20sp"
+        android:text="@string/cold_start_hint"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Счётчик карточек -->
+
+    <TextView
+        android:id="@+id/tv_hint2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="10dp"
+        android:textSize="15sp"
+        android:text="@string/cold_start_hint2"
+        style="@style/DarkerColor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hint" />
+
+    <!-- Счётчик карточек -->
+
+    <TextView
+        android:id="@+id/tv_counter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="100dp"
+        android:padding="10dp"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_hint"
+        tools:text="1/10" />
+
+    <FrameLayout
+        android:id="@+id/card_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_counter" />
+
+    <!-- Надпись, которая будет видна после последней карточки -->
+    <TextView
+        android:id="@+id/tv_thanks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="50dp"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="@string/cold_start_thanks_message"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <!-- Overlay иконки поверх всех карточек -->
+
+    <ImageView
+        android:id="@+id/overlay_like"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center|end"
+        android:alpha="0"
+        app:srcCompat="?attr/buttonLike"
+        android:translationZ="100dp"
+        app:layout_constraintBottom_toBottomOf="@+id/card_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/card_container" />
+
+
+    <ImageView
+        android:id="@+id/overlay_dislike"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center|start"
+        android:alpha="0"
+        app:srcCompat="?attr/buttonDislike"
+        android:translationZ="100dp"
+        app:layout_constraintBottom_toBottomOf="@+id/card_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/card_container" />
+
+    <Button
+        android:id="@+id/btn_done"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:text="@string/cold_start_btn_complete"
+        android:visibility="gone"
+        android:onClick="toggleDone"
+        android:paddingHorizontal="50dp"
+        android:paddingVertical="10dp"
+        android:layout_marginBottom="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/tv_later"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:layout_gravity="bottom"
+        android:clickable="true"
+        android:text="@string/cold_start_later"
+        android:textSize="20sp"
+        android:onClick="toggleLater"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="TouchTargetSizeCheck" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,14 +22,17 @@ import com.example.recipeguide.R;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
-public class DishAdapter extends ArrayAdapter<Dish> {
-    private ArrayList<Dish> originalDishes; // Исходный список блюд
-    private ArrayList<Dish> filteredDishes; // Отфильтрованный список
+import Model.Recipe;
+
+public class DishAdapter extends ArrayAdapter<Recipe> {
+    private List<Recipe> originalDishes; // Исходный список блюд
+    private List<Recipe> filteredDishes; // Отфильтрованный список
     private Filter dishFilter; // Фильтр для поиска
     private Context context;
     SharedPreferences sharedPreferences;
-    public DishAdapter(Context context, ArrayList<Dish> dishes) {
+    public DishAdapter(Context context, List<Recipe> dishes) {
         super(context, 0, dishes);
         this.context = context;
         this.originalDishes = new ArrayList<>(dishes); // Сохраняем оригинальный список
@@ -40,7 +43,7 @@ public class DishAdapter extends ArrayAdapter<Dish> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Dish dish = getItem(position);
+        Recipe dish = getItem(position);
 
 
 
@@ -56,15 +59,15 @@ public class DishAdapter extends ArrayAdapter<Dish> {
         // Устанавливаем данные
         if (dish != null) {
             if(sharedPreferences.getBoolean("language", false)){
-                dishNameTextView.setText(dish.getRecipeName());
+                dishNameTextView.setText(dish.getName());
             }else {
-                dishNameTextView.setText(dish.getRecipeNameEn());
+                dishNameTextView.setText(dish.getName_en());
             }
 
 
-            String imagePath = dish.getRecipeImage();
+            String imagePath = dish.getImage();
             if (imagePath != null) {
-                File imgFile = new File(imagePath);
+                File imgFile = new File("/data/data/com.example.recipeguide/files/" + imagePath + ".jpg");
                 if (imgFile.exists()) {
                     Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                     dishImageView.setImageBitmap(bitmap); // Устанавливаем изображение в ImageView
@@ -79,7 +82,7 @@ public class DishAdapter extends ArrayAdapter<Dish> {
                 dishImageView.setImageResource(R.drawable.stub);
             }
             //dishCookingTimeTextView.setText("Время приготовления: \n" + dish.getRecipeCookingTime() + " мин");
-            String cookingTimeText = context.getString(R.string.cooking_time_dishList, dish.getRecipeCookingTime());
+            String cookingTimeText = context.getString(R.string.cooking_time_dishList, dish.getCookingTime());
             dishCookingTimeTextView.setText(cookingTimeText);
         }
 
@@ -93,7 +96,7 @@ public class DishAdapter extends ArrayAdapter<Dish> {
 
     @Nullable
     @Override
-    public Dish getItem(int position) {
+    public Recipe getItem(int position) {
         return filteredDishes.get(position);
     }
 
@@ -112,16 +115,16 @@ public class DishAdapter extends ArrayAdapter<Dish> {
                     } else {
                         String filterString = constraint.toString().toLowerCase().trim();
 
-                        // Отфильтровываем по названию блюда
-                        ArrayList<Dish> filteredList = new ArrayList<>();
-                        for (Dish dish : originalDishes) {
+                        // Отфильтровываем по названию блюда и ингредиентам
+                        List<Recipe> filteredList = new ArrayList<>();
+                        for (Recipe dish : originalDishes) {
                             if(sharedPreferences.getBoolean("language", false)){
-                                if (dish.getRecipeName().toLowerCase().contains(filterString)) {
+                                if (dish.getName().toLowerCase().contains(filterString) || dish.getIngredient().toLowerCase().contains(filterString)) {
                                     filteredList.add(dish);
                                 }
 
                             }else{
-                                if (dish.getRecipeNameEn().toLowerCase().contains(filterString)) {
+                                if (dish.getName_en().toLowerCase().contains(filterString) || dish.getIngredient_en().toLowerCase().contains(filterString)) {
                                     filteredList.add(dish);
                                 }
                             }
@@ -138,7 +141,7 @@ public class DishAdapter extends ArrayAdapter<Dish> {
                 protected void publishResults(CharSequence constraint, FilterResults results) {
                     filteredDishes.clear();
                     if (results.values != null) {
-                        filteredDishes.addAll((ArrayList<Dish>) results.values);
+                        filteredDishes.addAll((List<Recipe>) results.values);
                     }
                     notifyDataSetChanged(); // Обновляем ListView
                 }

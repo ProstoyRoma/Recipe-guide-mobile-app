@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <ConstraintSet android:id="@+id/start">
+        <Constraint android:id="@id/card_root">
+            <PropertySet android:alpha="1"/>
+            <!-- не указываем wrap_content/match_parent здесь; оставляем только привязки -->
+            <!-- если нужно, можно указать android:layout_width="0dp" и constraints -->
+        </Constraint>
+
+    </ConstraintSet>
+
+
+
+
+</MotionScene>

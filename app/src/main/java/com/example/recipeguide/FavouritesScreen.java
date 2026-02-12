@@ -24,12 +24,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import Data.DatabaseHandler;
+import Model.Recipe;
 
 
 public class FavouritesScreen extends AppCompatActivity {
 
 
     ListView listView;
+    BaseAdActivity baseAdActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,14 @@ public class FavouritesScreen extends AppCompatActivity {
             return insets;
         });
 
+        baseAdActivity = new BaseAdActivity(
+                this,
+                R.id.main,
+                R.id.ad_container_view,
+                "demo-banner-yandex"
+        );
+        baseAdActivity.load();
+
         listView = findViewById(R.id.listView);
 
         Log.d("FavouritesScreen", "Инициализация активности...");
@@ -50,7 +60,7 @@ public class FavouritesScreen extends AppCompatActivity {
 
 
         DatabaseHandler databaseHelper = new DatabaseHandler(this);
-        ArrayList<Dish> dishes = databaseHelper.getFavoriteRecipe();
+        ArrayList<Recipe> dishes = databaseHelper.getFavoriteRecipe();
         DishAdapter adapter = new DishAdapter(this, dishes); // Создаём адаптер
 
         Log.d("FavouritesScreen", "Данные загружены: " + dishes.size());
@@ -58,7 +68,7 @@ public class FavouritesScreen extends AppCompatActivity {
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             // Получаем выбранное блюдо
-            Dish selectedDish = adapter.getItem(position);
+            Recipe selectedDish = adapter.getItem(position);
 
             if (selectedDish != null) {
                 // Создаём Intent и передаём ID блюда
@@ -91,5 +101,13 @@ public class FavouritesScreen extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        SharedPreferences prefs = newBase.getSharedPreferences("MODE", Context.MODE_PRIVATE);
+        boolean russian = prefs.getBoolean("language", true);
+        String langCode = russian ? "ru" : "en";
+        Context context = LocaleHelper.setLocale(newBase, langCode);
+        super.attachBaseContext(context);
+    }
 
 }

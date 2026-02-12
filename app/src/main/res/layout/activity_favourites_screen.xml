@@ -8,11 +8,19 @@
     style="@style/AppTheme"
     tools:context=".FavouritesScreen">
 
+    <com.yandex.mobile.ads.banner.BannerAdView
+        android:id="@+id/ad_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
     <TextView
         android:id="@+id/favourites"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="55dp"
         android:alpha="1"
         android:text="@string/favourite"
         android:textSize="35dp"

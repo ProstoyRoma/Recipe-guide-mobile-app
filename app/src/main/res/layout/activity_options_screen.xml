@@ -9,12 +9,19 @@
     android:hapticFeedbackEnabled="false"
     tools:context=".OptionsScreen">
 
+    <com.yandex.mobile.ads.banner.BannerAdView
+        android:id="@+id/ad_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <TextView
         android:id="@+id/options"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="55dp"
         android:text="@string/options"
         android:textSize="35sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -57,7 +64,7 @@
                 android:id="@+id/account_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Мой аккаунт"
+                android:text="@string/my_acc"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 />
@@ -98,6 +105,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_gravity="center"
+                android:checked="false"
                 android:layout_marginLeft="30dp"
                 android:layout_marginRight="30dp"
                 android:alpha="255"
@@ -131,7 +139,7 @@
                 android:id="@+id/language_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Язык"
+                android:text="@string/language"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 />
@@ -193,7 +201,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
         android:layout_marginBottom="10dp"
-        android:text="Авторы: Гаманович А.А, Сенкевич Р.А,\nТокарчук В.Ю"
+        android:text="Автор: Сенкевич Р.А"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"

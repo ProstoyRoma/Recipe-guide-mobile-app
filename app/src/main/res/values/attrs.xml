@@ -12,4 +12,8 @@
     <attr name="buttonLanguageIcon" format="reference" />
     <attr name="editTextTint" format="reference" />
     <attr name="colorDivider" format="reference" />
+    <attr name="buttonTrashcan" format="reference" />
+    <attr name="screenBackground" format="reference|color"/>
+    <attr name="buttonLike" format="reference"/>
+    <attr name="buttonDislike" format="reference"/>
 </resources>

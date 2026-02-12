@@ -1,34 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ActivityProfile">
-    <!-- Заголовок "Личный кабинет" -->
-    <TextView
-        android:id="@+id/profile_title"
-        android:layout_width="wrap_content"
+
+    <com.yandex.mobile.ads.banner.BannerAdView
+        android:id="@+id/ad_container_view"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="Личный кабинет"
-        android:textSize="35sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@id/ad_container_view"
+        tools:ignore="MissingConstraints">
+
+        <!-- Заголовок "Личный кабинет" -->
+        <ImageButton
+            android:id="@+id/button_back_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#00FFFFFF"
+            android:contentDescription="button_back_arrow"
+            android:onClick="goBack"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="?attr/buttonBackIcon"
+            tools:ignore="TouchTargetSizeCheck" />
+
+        <TextView
+            android:id="@+id/profile_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="@string/personal_acc"
+            android:textSize="35sp"
+            app:autoSizeMaxTextSize="35sp"
+            app:autoSizeMinTextSize="12sp"
+            app:autoSizeStepGranularity="1sp"
+            app:autoSizeTextType="uniform"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@id/button_back_arrow"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- Аватар пользователя -->
     <ImageView
         android:id="@+id/user_avatar"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="120dp"
         android:src="@drawable/avatar_icon"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_title" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Имя пользователя -->
     <EditText
@@ -42,39 +78,106 @@
         android:cursorVisible="false"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:maxLines="2"
         android:gravity="center"
-        android:text="Имя пользователя"
+        android:maxLines="2"
+        android:text="@string/username"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/user_avatar"
         tools:ignore="TouchTargetSizeCheck" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/root"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:padding="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/user_name">
+        <!-- Верхняя строка: две вкладки -->
+        <LinearLayout
+            android:id="@+id/tabsContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
+            <TextView
+                android:id="@+id/tab_my_recipes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:text="@string/my_recipes"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tab_cooked"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:paddingVertical="12dp"
+                android:text="@string/cooked"
+                android:textColor="@color/text_time"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <!-- Подчеркивающая линия (по умолчанию под первой вкладкой) -->
+        <View
+            android:id="@+id/tab_underline"
+            android:layout_width="0dp"
+            android:layout_height="3dp"
+            android:layout_marginTop="0dp"
+            android:background="@color/black"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tabsContainer" />
+
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginVertical="20dp"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="1dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tab_underline" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Список -->
+    <!--<TextView
         android:id="@+id/my_recipe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Мои рецепты:"
-        android:textSize="20sp"
         android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:text="@string/my_recipes"
+        android:textSize="20sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/user_name" />
 
-    <!-- Список сохранённых рецептов -->
+     Список сохранённых рецептов
     <ListView
         android:id="@+id/user_recipes_list"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginVertical="20dp"
-        app:layout_constraintBottom_toTopOf="@+id/divider"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout7"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/my_recipe" />
+        app:layout_constraintTop_toBottomOf="@id/my_recipe" />-->
 
-    <View
+    <!--<View
         android:id="@+id/divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
@@ -83,14 +186,14 @@
         app:layout_constraintBottom_toTopOf="@+id/linearLayout7"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/user_recipes_list" />
+        app:layout_constraintTop_toBottomOf="@id/user_recipes_list" />-->
 
 
     <!-- Кнопки "Редактировать профиль" и "Выход из аккаунта" -->
     <LinearLayout
         android:id="@+id/linearLayout7"
         android:layout_width="0dp"
-        android:layout_height="55dp"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="15dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -103,8 +206,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@drawable/rounded_button_default"
             android:onClick="editProfile"
-            android:text="Редактировать профиль"
+            android:padding="7dp"
+            android:text="@string/edit_profile"
             tools:ignore="TouchTargetSizeCheck" />
 
         <androidx.appcompat.widget.AppCompatButton
@@ -113,7 +218,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Выйти"
+            android:background="@drawable/rounded_button_default"
+            android:padding="7dp"
+            android:text="@string/log_out"
             android:textColor="@color/red" />
     </LinearLayout>
 

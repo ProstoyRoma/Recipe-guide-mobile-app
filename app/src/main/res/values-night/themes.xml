@@ -18,8 +18,33 @@
         <item name="buttonShareIcon">@drawable/button_share_dark</item>
         <item name="buttonAccountIcon">@drawable/account_dark</item>
         <item name="buttonLanguageIcon">@drawable/language_dark</item>
+        <item name="buttonTrashcan">@drawable/button_trashcan_dark</item>
+        <item name="buttonLike">@drawable/button_like_dark</item>
+        <item name="buttonDislike">@drawable/button_dislike_dark</item>
         <item name="buttonStyle">@style/CustomButton</item>
         <item name="colorDivider">@color/white</item>
+        <item name="android:spinnerDropDownItemStyle">@style/MySpinnerDropDownItemStyle</item>
+        <item name="spinnerDropDownItemStyle">@style/MySpinnerDropDownItemStyle</item>
+        <item name="screenBackground">@color/background_card</item>
+    </style>
+
+    <style name="AppTheme.MaterialChipTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+
+        <item name="android:colorPrimary">@color/main_dark_theam</item>
+        <item name="android:colorPrimaryDark">@color/main_dark_theam2</item>
+        <item name="android:windowBackground">@color/background_dark_theam</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorHint">@color/text_time_dark</item>
+        <item name="android:fontFamily">@font/montserrat</item>
+        <item name="android:color">@color/main_dark_theam</item>
+        <item name="editTextTint">@color/white</item>
+        <item name="screenBackground">@color/background_card</item>
+        <item name="buttonStyle">@style/CustomButton</item>
+        <item name="android:textSize">16sp</item>
+
+        <item name="checkboxStyle">@style/CustomCheckBox</item>
+        <item name="radioButtonStyle">@style/CustomRadioButton</item>
+        <item name="chipStyle">@style/CustomChip</item>
     </style>
 
     <style name="CustomButton">
@@ -43,5 +68,32 @@
     <style name="DarkerColor.CustomEditText">
         <item name="android:background">@color/background_add_screen</item>
     </style>
+
+    <style name="MySpinnerDropDownItemStyle" parent="Widget.AppCompat.ListView.DropDown">
+        <!-- Задаём чёрный цвет текста -->
+        <item name="android:textColor">#000000</item>
+    </style>
+
+    <style name="CustomCheckBox" parent="Widget.MaterialComponents.CompoundButton.CheckBox">
+        <!-- Уменьшаем отступы -->
+        <item name="android:padding">7dp</item>
+        <item name="android:minHeight">0dp</item>
+
+        <!-- Можно задать другие общие свойства -->
+    </style>
+    <style name="CustomRadioButton" parent="Widget.MaterialComponents.CompoundButton.RadioButton">
+        <!-- Уменьшаем отступы -->
+        <item name="android:padding">7dp</item>
+        <item name="android:minHeight">0dp</item>
+        <!-- Можно задать другие общие свойства -->
+    </style>
+
+    <style name="CustomChip" parent="Widget.MaterialComponents.Chip.Filter">
+        <!-- Цвет текста в Chip -->
+        <item name="android:textColor">@color/black</item>
+        <item name="chipBackgroundColor">@color/background_add_screen</item>
+
+    </style>
+
 
 </resources>

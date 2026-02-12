@@ -33,16 +33,127 @@
     <string name="confirm">Подтвердить</string>
     <string name="cancel">Отмена</string>
     <string name="subject">Запрос в поддержку</string>
+    <string name="choose_language">"You have chosen: "</string>
+    <string name="choose_lang">Выберите язык:</string>
     <string name="body">Ваше сообщение</string>
     <string name="policy_message">Вы действительно хотите скачать файл?</string>
     <string name="successful_saving_policy">Файл сохранен в Downloads: </string>
     <string name="unsuccessful_saving_policy">Ошибка при сохранении файла</string>
     <string name="no_email_client">Почтовый клиент не найден</string>
+    <string name="prepared">Приготовил(а)</string>
+    <string name="cooked_message">Блюдо сохранено в личном кабинете</string>
 
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="registration">Регистрация</string>
     <string name="sign_in">Зарегистрироваться</string>
+    <string name="my_acc">Мой аккаунт</string>
+    <string name="language">Язык</string>
+    <string name="or">Или</string>
+    <string name="log_in">Авторизоваться</string>
+    <string name="personal_acc">Личный кабинет</string>
+    <string name="my_recipes">Мои рецепты</string>
+    <string name="edit_profile">Редактировать профиль</string>
+    <string name="log_out">Выйти</string>
+    <string name="input_email">Введите email</string>
+    <string name="input_usermane">Введите имя пользователя</string>
+    <string name="input_password">Введите пароль</string>
+    <string name="confirm_password">Подтвердите пароль</string>
+    <string name="username">Имя пользователя</string>
+    <string name="select_image">Выберите изображение</string>
+    <string name="validation_no_image">Изображение не является блюдом</string>
+    <string name="load_recipes">Загружено рецептов: </string>
+    <string name="load_recipes_intent">Загружено рецептов из Intent: </string>
+    <string name="no_dishes">Нет данных для загрузки, `dishes` остаётся `null`</string>
+    <string name="error_loaded">Ошибка загрузки: </string>
+    <string name="error_email_empty">Пожалуйста, введите ваш Email</string>
+    <string name="error_email">Пожалуйста, введите корректный Email</string>
+    <string name="error_username">Пожалуйста, введите имя пользователя</string>
+    <string name="error_password_empty">Пожалуйста, введите пароль</string>
+    <string name="error_password">Длина пароля должна содержать не менее 6 символов</string>
+    <string name="error_confirmpassw_empty">Пожалуйста, подтвердите пароль</string>
+    <string name="errror_confirmpassw">Пароли не совпадают</string>
+    <string name="user">"Пользователь "</string>
+    <string name="success_signin">" успешно зарегистрирован"</string>
+    <string name="authentication_failed">Аутентификация провалена</string>
+    <string name="enter_account">Войти</string>
+    <string name="error_load_image">Ошибка загрузки изображения</string>
+    <string name="error_translate">"Ошибка загрузки модели перевода: "</string>
+    <string name="notification_permission">Разрешение на уведомления отклонено</string>
+    <string name="error_pdf">Ошибка при создании PDF</string>
+    <string name="category">Категория: </string>
+    <string name="category_promt">Выбрать</string>
+
+    <string name="category_appetizers">Закуски</string>
+    <string name="category_soup">Суп</string>
+    <string name="category_salad">Салат</string>
+    <string name="category_main_course">Основное блюдо</string>
+    <string name="category_side_dish">Гарнир</string>
+    <string name="category_dessert">Десерт</string>
+    <string name="category_drink">Напиток</string>
+    <string name="category_sauces_and_seasonings">Соусы и приправы</string>
+    <string name="category_baked_goods">Выпечка</string>
+    <string name="category_snacks">Перекус</string>
+    <string name="good_save">Рецепт сохранен в личном кабинете</string>
+    <string name="add_ingredient">Добавить ингредиент</string>
+    <string name="ingredient">Ингредиент</string>
+    <string name="qty">кол-во</string>
+    <string name="unit">Мера</string>
+    <string name="cooked">Приготовленное</string>
+    <string name="cold_start_hint">Для улучшения рекомендаций оцените несколько карточек</string>
+    <string name="cold_start_hint2">Перетените карточку в сторону\nВправо - like, влево - dislike</string>
+    <string name="cold_start_thanks_message">Спасибо за ваш выбор и уделенное время</string>
+    <string name="cold_start_btn_complete">Готово</string>
+    <string name="cold_start_later">Позже</string>
+    <string name="question_type_dish">Какие типы блюд вы предпочитаете?</string>
+    <string name="cb_italy">Итальянская</string>
+    <string name="cb_japan">Японская</string>
+    <string name="cb_china">Китайская</string>
+    <string name="cb_russia">Русская</string>
+    <string name="cb_thailand">Тайская</string>
+    <string name="cb_france">Французская</string>
+    <string name="cb_mexico">Мексиканская</string>
+    <string name="cb_spain">Испанская</string>
+    <string name="cb_turkey">Турецкая</string>
+    <string name="cb_greece">Греческая</string>
+    <string name="cb_other">Другое:</string>
+    <string name="enter_other">Введите здесь</string>
+    <string name="choose_like_kitchen">Выберете любимые кухни</string>
+    <string name="no_diet">Не придерживаюсь определенного питания</string>
+    <string name="paleo_diet">Палео-диета</string>
+    <string name="dash_diet">Диета DASH</string>
+    <string name="keto_diet">Кето-диета</string>
+    <string name="gluten_free">Безглютеновая диета</string>
+    <string name="low_carb">Низкоуглеводная диета</string>
+    <string name="veganism">Веганство</string>
+    <string name="vegetarianism">Вегетарианство</string>
+    <string name="mediterranean">Средиземноморская диета</string>
+    <string name="question_diet">Вы придерживаетесь определённого питания?</string>
+    <string name="no_allergy">Нет пищевых аллергий или ограничений</string>
+    <string name="wheat">Пшеница</string>
+    <string name="soy">Соя</string>
+    <string name="shellfish">Морепродукты</string>
+    <string name="fish">Рыба</string>
+    <string name="peanuts">Арахис</string>
+    <string name="nuts">Орехи</string>
+    <string name="eggs">Яйца</string>
+    <string name="milk">Молоко</string>
+    <string name="question_allergy">Какие продукты/аллергены вы хотите исключить из рекомендаций?</string>
+    <string name="title_questionnaire">Помогите нам узнать вас лучше!</string>
+
+    <string-array name="categories_array">
+        <item>Выбрать</item>
+        <item>Закуски</item>
+        <item>Суп</item>
+        <item>Салат</item>
+        <item>Основное блюдо</item>
+        <item>Гарнир</item>
+        <item>Десерт</item>
+        <item>Напиток</item>
+        <item>Соусы и приправы</item>
+        <item>Выпечка</item>
+        <item>Перекус</item>
+    </string-array>
 
 </resources>

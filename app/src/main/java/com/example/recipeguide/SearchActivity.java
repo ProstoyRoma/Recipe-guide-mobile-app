@@ -23,12 +23,15 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.ArrayList;
 
 import Data.DatabaseHandler;
+import Model.Recipe;
 
 
 public class SearchActivity extends AppCompatActivity {
 
     SearchView searchView;
     ListView listView;
+    BaseAdActivity baseAdActivity;
+    private String lastQuery = ""; // хранит последний текст в SearchView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,21 +45,37 @@ public class SearchActivity extends AppCompatActivity {
             return insets;
         });
 
+        baseAdActivity = new BaseAdActivity(
+                this,
+                R.id.main,
+                R.id.ad_container_view,
+                "demo-banner-yandex"
+        );
+        baseAdActivity.load();
+
         listView = findViewById(R.id.listView);
         searchView = findViewById(R.id.search_field);
         searchView.setQueryHint(getString(R.string.search));
 
         DatabaseHandler databaseHelper = new DatabaseHandler(this);
-        ArrayList<Dish> dishes = databaseHelper.getAllRecipe();
+        ArrayList<Recipe> dishes = databaseHelper.getAllRecipe();
         DishAdapter adapter = new DishAdapter(this, dishes); // Создаём адаптер
 
         listView.setAdapter(adapter); // Устанавливаем адаптер
 
         listView.setOnItemClickListener((parent, view, position, id) -> {
             // Получаем выбранное блюдо
-            Dish selectedDish = adapter.getItem(position);
+            Recipe selectedDish = adapter.getItem(position);
 
             if (selectedDish != null) {
+                if (lastQuery != null && lastQuery.trim().length() >= 3) {
+                    // пример: insertEvent(String userId, String recipeId, String query)
+                    // замените параметры на те, что нужны вашей реализации
+                    databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),User.username,"search", selectedDish.getId(), System.currentTimeMillis());
+                }else{
+                    databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),User.username,"view",selectedDish.getId(),System.currentTimeMillis());
+
+                }
                 // Создаём Intent и передаём ID блюда
                 Intent intent = new Intent(getApplicationContext(), recipe_example_activity.class);
                 intent.putExtra("dish_id", selectedDish.getId()); // Передаём ID блюда
@@ -66,12 +85,14 @@ public class SearchActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                lastQuery = query != null ? query : "";
                 adapter.getFilter().filter(query);
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                lastQuery = newText != null ? newText : "";
                 adapter.getFilter().filter(newText);
                 return false;
             }
@@ -98,5 +119,13 @@ public class SearchActivity extends AppCompatActivity {
     public void goOptions(View view){
         Intent intent = new Intent(this, OptionsScreen.class);
         startActivity(intent);
+    }
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        SharedPreferences prefs = newBase.getSharedPreferences("MODE", Context.MODE_PRIVATE);
+        boolean russian = prefs.getBoolean("language", true);
+        String langCode = russian ? "ru" : "en";
+        Context context = LocaleHelper.setLocale(newBase, langCode);
+        super.attachBaseContext(context);
     }
 }

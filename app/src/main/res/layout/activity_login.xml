@@ -49,7 +49,7 @@
 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Введите email"
+                android:hint="@string/input_email"
                 android:inputType="textEmailAddress"
                 tools:ignore="TouchTargetSizeCheck">
 
@@ -70,7 +70,7 @@
 
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Введите имя пользователя"
+                android:hint="@string/input_usermane"
                 android:inputType="text"
                 android:maxLength="30"
                 tools:ignore="TouchTargetSizeCheck">
@@ -92,7 +92,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:hint="Введите пароль"
+                android:hint="@string/input_password"
                 android:inputType="textPassword"
                 tools:ignore="TouchTargetSizeCheck">
 
@@ -113,7 +113,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:hint="Подтвердите пароль"
+                android:hint="@string/confirm_password"
                 android:inputType="textPassword"
                 tools:ignore="TouchTargetSizeCheck">
 
@@ -133,7 +133,7 @@
         android:onClick="loginSignUp"
         android:paddingHorizontal="50dp"
         android:paddingVertical="10dp"
-        android:text="Зарегистрироваться"
+        android:text="@string/sign_in"
         android:textAllCaps="false"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/or"
@@ -147,7 +147,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:clickable="true"
-        android:text="Или"
+        android:text="@string/or"
         android:textColor="@color/text_time_dark"
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/toggleLoginSignUp"
@@ -163,7 +163,7 @@
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
         android:clickable="true"
-        android:text="Авторизоваться"
+        android:text="@string/log_in"
         android:textSize="16sp"
         android:onClick="toggleLoginSignUp"
         app:layout_constraintBottom_toBottomOf="parent"

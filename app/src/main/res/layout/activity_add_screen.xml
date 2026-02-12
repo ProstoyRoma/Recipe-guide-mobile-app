@@ -8,7 +8,13 @@
     android:orientation="vertical"
     tools:context=".AddScreen">
 
-
+    <com.yandex.mobile.ads.banner.BannerAdView
+        android:id="@+id/ad_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -24,10 +30,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
-
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ad_container_view"
         tools:context=".AddScreen">
 
         <!-- Название рецепта с кнопками назад и добавить в избранное -->
@@ -35,7 +40,8 @@
             android:id="@+id/relative_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            >
 
 
             <ImageButton
@@ -71,7 +77,7 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="5dp">
 
             <ImageButton
                 android:id="@+id/button_add_photo"
@@ -85,6 +91,34 @@
                 android:scaleType="centerCrop"
                 app:srcCompat="@drawable/button_add_photo" />
         </FrameLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="5dp"
+            android:layout_marginHorizontal="10dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            >
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                style="@style/DarkerColor"
+                android:text="@string/category" />
+
+            <Spinner
+                android:id="@+id/spinner_category"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:spinnerMode="dropdown"
+                android:popupBackground="@color/background_add_screen"
+                android:background="@drawable/spinner_bg_with_arrow"
+                tools:ignore="TouchTargetSizeCheck"/>
+
+        </LinearLayout>
 
         <!-- Время приготовления -->
         <LinearLayout
@@ -123,8 +157,10 @@
                 tools:ignore="TouchTargetSizeCheck" />
         </LinearLayout>
 
+
         <!-- Кнопки ингредиентов и рецепта -->
         <LinearLayout
+            android:id="@+id/linearLayout_button_fragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="5dp"
@@ -163,7 +199,7 @@
         android:id="@+id/frame_layout_ingredients"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginHorizontal="15dp"
+        android:layout_marginHorizontal="5dp"
         android:layout_marginBottom="10dp"
         android:layout_weight="1"
         app:layout_constraintBottom_toTopOf="@+id/button_save"
@@ -243,6 +279,14 @@
             app:srcCompat="?attr/buttonGearIcon" />
     </LinearLayout>
 
-
+    <ProgressBar
+        android:id="@+id/uploadProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

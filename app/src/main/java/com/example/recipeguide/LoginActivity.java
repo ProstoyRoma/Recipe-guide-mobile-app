@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
@@ -73,16 +74,17 @@ public class LoginActivity extends AppCompatActivity {
         auth_title = findViewById(R.id.auth_title);
 
         mAuth = FirebaseAuth.getInstance();
+        setupBackButtonHandler();
 
     }
 
     private boolean validaiteEmail() {
         String emailInput = emailText.getEditText().getText().toString().trim();
         if (emailInput.isEmpty()) {
-            emailText.setError("Пожалуйста, введите ваш Email");
+            emailText.setError(getString(R.string.error_email_empty));
             return false;
         } else if (countAtSymbols(emailInput) != 1 || !emailInput.matches("^[\\w-\\.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$") || checkStringDoubleDots(emailInput) || checkStringSpace(emailInput)) {
-            emailText.setError("Пожалуйста, введите корректный Email");
+            emailText.setError(getString(R.string.error_email));
             return false;
         } else {
             emailText.setError("");
@@ -111,7 +113,7 @@ public class LoginActivity extends AppCompatActivity {
     private boolean validaiteUsername() {
         String usernameInput = username.getEditText().getText().toString().trim();
         if (usernameInput.isEmpty()) {
-            username.setError("Пожалуйста, введите имя пользователя");
+            username.setError(getString(R.string.error_username));
             return false;
         } else {
             username.setError("");
@@ -122,10 +124,10 @@ public class LoginActivity extends AppCompatActivity {
     private boolean validaitePassword() {
         String passwordInput = passwordText.getEditText().getText().toString().trim();
         if (passwordInput.isEmpty()) {
-            passwordText.setError("Пожалуйста, введите пароль");
+            passwordText.setError(getString(R.string.error_password_empty));
             return false;
         } else if (passwordInput.length() < 6) {
-            passwordText.setError("Длина пароля должна содержать не менее 6 символов");
+            passwordText.setError(getString(R.string.error_password));
             return false;
         } else {
             passwordText.setError("");
@@ -137,13 +139,13 @@ public class LoginActivity extends AppCompatActivity {
         String passwordInput = passwordText.getEditText().getText().toString().trim();
         String confirmPasswordInput = confirm_password.getEditText().getText().toString().trim();
         if (confirmPasswordInput.isEmpty()) {
-            confirm_password.setError("Пожалуйста, подтвердите пароль");
+            confirm_password.setError(getString(R.string.error_confirmpassw_empty));
             return false;
         } else if (confirmPasswordInput.length() < 6) {
-            confirm_password.setError("Длина пароля должна содержать не менее 6 символов");
+            confirm_password.setError(getString(R.string.error_password));
             return false;
         } else if (!confirmPasswordInput.equals(passwordInput)) {
-            confirm_password.setError("Пароли не совпадают");
+            confirm_password.setError(getString(R.string.errror_confirmpassw));
             return false;
         } else {
             confirm_password.setError("");
@@ -162,7 +164,7 @@ public class LoginActivity extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     String usernameInput = username.getEditText().getText().toString().trim();
-                                    Toast.makeText(LoginActivity.this, "Пользователь " + usernameInput + " успешно зарегистрирован", Toast.LENGTH_LONG).show();
+                                    Toast.makeText(LoginActivity.this, getString(R.string.user) + usernameInput + getString(R.string.success_signin), Toast.LENGTH_LONG).show();
 
                                     // Sign in success, update UI with the signed-in user's information
                                     Log.d("signup", "createUserWithEmail:success");
@@ -176,10 +178,12 @@ public class LoginActivity extends AppCompatActivity {
                                     myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
 
                                     User.username = username.getEditText().getText().toString().trim();
+                                    User.userImage = null;
 
                                     sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
                                     editor = sharedPreferences.edit();
                                     editor.putString("username", User.username);
+                                    editor.putString("userImage", User.userImage);
                                     editor.apply();
 
                                     Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
@@ -188,7 +192,7 @@ public class LoginActivity extends AppCompatActivity {
                                 } else {
                                     // If sign in fails, display a message to the user.
                                     Log.w("signup", "createUserWithEmail:failure", task.getException());
-                                    Toast.makeText(LoginActivity.this, "Authentication failed.",
+                                    Toast.makeText(LoginActivity.this, getString(R.string.authentication_failed),
                                             Toast.LENGTH_SHORT).show();
                                     //updateUI(null);
                                 }
@@ -209,7 +213,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                 myRef.child(user.getUid()).get().addOnCompleteListener(taskProfile -> {
                                     if (!taskProfile.isSuccessful()) {
-                                        Log.e("firebase", "Ошибка получения данных", taskProfile.getException());
+                                        Log.e("firebase", getString(R.string.error_loaded), taskProfile.getException());
                                     } else {
                                         User.username = String.valueOf(taskProfile.getResult().child("username").getValue());
                                         User.userImage = String.valueOf(taskProfile.getResult().child("imageUrl").getValue());
@@ -221,21 +225,21 @@ public class LoginActivity extends AppCompatActivity {
                                         editor.putString("userImage", User.userImage);
                                         editor.apply();
 
+                                        getMyRecipe(LoginActivity.this, dishes -> {
+                                            Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
+                                            intent.putStringArrayListExtra("dish_list", dishes);
+                                            startActivity(intent);
+                                            finish();
+                                        });
                                         Log.d("firebase", String.valueOf(taskProfile.getResult().getValue()));
                                     }
                                 });
 
                                 // 📌 Запрашиваем список рецептов через `Callback`
-                                getMyRecipe(LoginActivity.this, dishes -> {
-                                    Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
-                                    intent.putExtra("dish_list", dishes); // ✅ Передаём данные
-                                    startActivity(intent);
-                                    finish();
-                                });
 
                             } else {
                                 Log.w("login", "signInWithEmail:failure", task.getException());
-                                Toast.makeText(LoginActivity.this, "Ошибка авторизации", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(LoginActivity.this, getString(R.string.authentication_failed), Toast.LENGTH_SHORT).show();
                             }
                         });
             }
@@ -245,10 +249,10 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void getMyRecipe(Context context, RecipeCallback callback) {
-        FirebaseUser user = mAuth.getCurrentUser();
+        /*FirebaseUser user = mAuth.getCurrentUser();
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users").child(user.getUid()).child("my_recipes");
-        ArrayList<Dish> dishList = new ArrayList<>();
+        ArrayList<Recipe> dishList = new ArrayList<>();
 
         myRef.addListenerForSingleValueEvent(new ValueEventListener() { // ✅ Используем `ListenerForSingleValueEvent`
             @Override
@@ -276,15 +280,15 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
                     // 📌 Добавляем рецепт в `dishList`
-                    Dish dish = new Dish();
-                    dish.setId(recipeId);
-                    dish.setRecipeName(recipeSnapshot.child("name").getValue(String.class));
-                    dish.setRecipeNameEn(recipeSnapshot.child("name_en").getValue(String.class));
-                    dish.setRecipeImage(recipeSnapshot.child("image").getValue(String.class));
-                    dish.setRecipeCookingTime(recipeSnapshot.child("cookingTime").getValue(Integer.class));
+                    Recipe r = new Recipe();
+                    r.setId(recipeId);
+                    r.setRecipe(recipeSnapshot.child("name").getValue(String.class));
+                    r.setRecipe_en(recipeSnapshot.child("name_en").getValue(String.class));
+                    r.setImage(recipeSnapshot.child("image").getValue(String.class));
+                    r.setCookingTime(recipeSnapshot.child("cookingTime").getValue(Integer.class));
 
-                    if (!dishList.contains(dish)) {
-                        dishList.add(dish);
+                    if (!dishList.contains(r)) {
+                        dishList.add(r);
                     }
                 }
 
@@ -300,7 +304,84 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
+                Log.e("Firebase", getString(R.string.error_loaded) + error.getMessage());
+            }
+        });*/
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+
+            return;
+        }
+
+        DatabaseHandler dbHelper = new DatabaseHandler(context);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("my_recipes");
+
+        ArrayList<String> idList = new ArrayList<>();
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                try {
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        String recipeId = child.getKey();
+                        if (recipeId == null) continue;
+
+                        // 🔥 Проверяем, есть ли рецепт в SQLite
+                        if (!dbHelper.myRecipeInSQLite(recipeId)) {
+                            Recipe recipe = new Recipe();
+                            recipe.setId(recipeId);
+                            recipe.setName(child.child("name").getValue(String.class));
+                            recipe.setName_en(child.child("name_en").getValue(String.class));
+                            recipe.setImage(child.child("image").getValue(String.class));
+                            recipe.setCookingTime(child.child("cookingTime").getValue(Integer.class));
+                            recipe.setIngredient(child.child("ingredient").getValue(String.class));
+                            recipe.setIngredient_en(child.child("ingredient_en").getValue(String.class));
+                            recipe.setRecipe(child.child("recipe").getValue(String.class));
+                            recipe.setRecipe_en(child.child("recipe_en").getValue(String.class));
+                            recipe.setIsFavorite(1);
+
+                            dbHelper.insertOrUpdateRecipe(recipe); // ✅ Сохраняем в SQLite
+                        }
+                        // Если значение узла boolean true или строка "true" — считаем, что рецепт есть в списке
+                        Object val = child.getValue();
+                        boolean enabled = false;
+                        if (val instanceof Boolean) {
+                            enabled = (Boolean) val;
+                        } else if (val instanceof String) {
+                            enabled = Boolean.parseBoolean((String) val);
+                        } else if (val instanceof Long) {
+                            enabled = ((Long) val) != 0L;
+                        }
+
+                        if (enabled) {
+                            idList.add(recipeId);
+                        }
+                    }
+
+                    // Сохраняем список id в SharedPreferences как JSON (опционально)
+                    SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    Gson gson = new Gson();
+                    String json = gson.toJson(idList);
+                    editor.putString("dish_list", json);
+                    editor.apply();
+
+                    if (callback != null) callback.onRecipesLoaded(idList);
+                } catch (Exception e) {
+                    if (callback != null)
+                        Log.e("Firebase", getString(R.string.error_loaded) );
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                if (callback != null)
+                    Log.e("Firebase", getString(R.string.error_loaded) + error.getMessage());
+
             }
         });
     }
@@ -311,21 +392,41 @@ public class LoginActivity extends AppCompatActivity {
             isLoginActivity = false;
             username.setVisibility(View.GONE);
             confirm_password.setVisibility(View.GONE);
-            auth_title.setText("Авторизация");
-            toggleLoginSignUp.setText("Зарегистрироваться");
-            login_button.setText("Войти");
+            auth_title.setText(getString(R.string.log_in));
+            toggleLoginSignUp.setText(getString(R.string.sign_in));
+            login_button.setText(R.string.enter_account);
 
         } else {
             isLoginActivity = true;
             username.setVisibility(View.VISIBLE);
             confirm_password.setVisibility(View.VISIBLE);
-            auth_title.setText("Регистрация");
-            toggleLoginSignUp.setText("Авторизоваться");
-            login_button.setText("Зарегистрироваться");
+            auth_title.setText(getString(R.string.registration));
+            toggleLoginSignUp.setText(getString(R.string.log_in));
+            login_button.setText(getString(R.string.sign_in));
         }
+    }
+
+    private void setupBackButtonHandler() {
+        // Устанавливаем обработчик для кнопки "Назад"
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Завершаем текущую Activity, возвращаемся на предыдущую
+                finish();
+            }
+        });
     }
 
     public void goBack(View view) {
         finish();
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        SharedPreferences prefs = newBase.getSharedPreferences("MODE", Context.MODE_PRIVATE);
+        boolean russian = prefs.getBoolean("language", true);
+        String langCode = russian ? "ru" : "en";
+        Context context = LocaleHelper.setLocale(newBase, langCode);
+        super.attachBaseContext(context);
     }
 }

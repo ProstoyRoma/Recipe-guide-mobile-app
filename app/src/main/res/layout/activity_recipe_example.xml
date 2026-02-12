@@ -8,6 +8,13 @@
     style="@style/AppTheme"
     tools:context=".recipe_example_activity">
 
+    <com.yandex.mobile.ads.banner.BannerAdView
+        android:id="@+id/ad_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <ImageButton
         android:id="@+id/button_back_arrow"
@@ -17,7 +24,7 @@
         android:contentDescription="button_back_arrow"
         android:onClick="goBack"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ad_container_view"
         app:srcCompat="?attr/buttonBackIcon"
         tools:ignore="TouchTargetSizeCheck" />
 
@@ -35,7 +42,7 @@
         android:layout_marginHorizontal="5dp"
         app:layout_constraintEnd_toStartOf="@+id/button_save_favorites"
         app:layout_constraintStart_toEndOf="@+id/button_back_arrow"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/ad_container_view" />
 
 
     <ImageButton
@@ -45,7 +52,7 @@
         android:backgroundTint="#00FFFFFF"
         android:contentDescription="button_save_favorites"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ad_container_view"
         app:srcCompat="?attr/buttonHeartIcon"
         tools:ignore="TouchTargetSizeCheck" />
 
@@ -123,17 +130,30 @@
         </FrameLayout>
 
     </ScrollView>
+
     <TextView
-        android:id="@+id/Cooking_time"
+        android:id="@+id/Category"
+        style="@style/DarkerColor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:text="Время приготовления: XX мин"
         android:textSize="18sp"
-        style="@style/DarkerColor"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/image_dish" />
+        app:layout_constraintTop_toBottomOf="@+id/image_dish"
+        tools:text="Категория: Напиток" />
+
+    <TextView
+        android:id="@+id/Cooking_time"
+        style="@style/DarkerColor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Category"
+        tools:text="Время приготовления: XX мин" />
 
     <ImageButton
         android:id="@+id/button_share"
@@ -199,5 +219,6 @@
             android:onClick="goOptions"
             app:srcCompat="?attr/buttonGearIcon" />
     </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -47,6 +47,7 @@ public class OptionsScreen extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private String selectedLanguage = "Русский";
     private String selectedLang = "ru";
+    BaseAdActivity baseAdActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +59,14 @@ public class OptionsScreen extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        baseAdActivity = new BaseAdActivity(
+                this,
+                R.id.main,
+                R.id.ad_container_view,
+                "demo-banner-yandex"
+        );
+        baseAdActivity.load();
 
         notificationSwitch = findViewById(R.id.switch_notification);
         switcher = findViewById(R.id.switch_theme);
@@ -173,7 +182,7 @@ public class OptionsScreen extends AppCompatActivity {
                 if (isGranted) {
                     enableNotifications();
                 } else {
-                    Toast.makeText(this, "Разрешение на уведомления отклонено", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.notification_permission, Toast.LENGTH_SHORT).show();
                     notificationSwitch.setChecked(false);
                 }
             });
@@ -259,7 +268,7 @@ public class OptionsScreen extends AppCompatActivity {
     private void showLanguageDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Выберите язык");
+        builder.setTitle(getString(R.string.choose_lang));
 
         String[] languages = {"English", "Русский"};
         boolean isRussian = sharedPreferences.getBoolean("language", true);
@@ -276,12 +285,12 @@ public class OptionsScreen extends AppCompatActivity {
             }else {
                 selectedLanguage = "Русский";
             }
-            Toast.makeText(this, "Вы выбрали: " + selectedLanguage, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.choose_language) + selectedLanguage, Toast.LENGTH_SHORT).show();
             setAppLocale(selectedLang);
             dialog.dismiss();
         });
 
-        builder.setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -293,18 +302,15 @@ public class OptionsScreen extends AppCompatActivity {
 
         Configuration config = new Configuration();
         config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+        this.createConfigurationContext(config);
 
-
-        // Сохранение выбора языка
+                // Сохранение выбора языка
         editor = sharedPreferences.edit();
         editor.putBoolean("language", languageCode.equals("ru"));
-        editor.apply();
+        editor.commit();
 
         // Перезапуск активности для обновления локализации
-        Intent refresh = new Intent(this, OptionsScreen.class);
-        startActivity(refresh);
-        finish();
+        recreate();
     }
 
 
@@ -340,9 +346,18 @@ public class OptionsScreen extends AppCompatActivity {
     }
 
     public void goOptions(View view) {
-        Intent intent = new Intent(this, LoginActivity.class);
+        Intent intent = new Intent(this, OptionsScreen.class);
         startActivity(intent);
 
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        SharedPreferences prefs = newBase.getSharedPreferences("MODE", Context.MODE_PRIVATE);
+        boolean russian = prefs.getBoolean("language", true);
+        String langCode = russian ? "ru" : "en";
+        Context context = LocaleHelper.setLocale(newBase, langCode);
+        super.attachBaseContext(context);
     }
 
 

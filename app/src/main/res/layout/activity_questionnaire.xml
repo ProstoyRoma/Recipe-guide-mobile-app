@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/AppTheme.MaterialChipTheme"
+    tools:context=".QuestionnaireActivity">
+
+    <TextView
+        android:id="@+id/tv_intro"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:padding="10dp"
+        android:textStyle="bold"
+        android:text="@string/title_questionnaire"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <ScrollView
+        android:id="@+id/scroll_onboarding"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="top"
+        android:padding="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/layout_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_intro">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="@string/question_allergy"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/allergy_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/red"
+                android:textSize="15sp"
+                android:paddingStart="10dp"
+                android:visibility="gone"
+                android:text="Пожалуйста, ответьте на вопрос"
+                android:textStyle="italic"
+                 />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/exclude_products"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="6dp">
+
+                <CheckBox
+                    android:id="@+id/cb_milk"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/milk"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toTopOf="@+id/exclude_products"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_eggs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/eggs"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toTopOf="@+id/exclude_products"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_nuts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/nuts"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_milk"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_peanuts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/peanuts"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_milk"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_fish"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fish"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_nuts"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_shellfish"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/shellfish"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_nuts"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+
+                <CheckBox
+                    android:id="@+id/cb_soy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/soy"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_fish"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_wheat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/wheat"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_fish"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_other"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cb_other"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_soy"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <EditText
+                    android:id="@+id/et_other"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:ems="12"
+                    android:hint="@string/enter_other"
+                    android:inputType="textCapSentences"
+                    android:minHeight="0dp"
+                    android:textSize="14sp"
+                    android:padding="7dp"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toEndOf="@+id/cb_other"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_soy"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_no_allergy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="15dp"
+                    android:text="@string/no_allergy"
+                    app:layout_constraintStart_toStartOf="@+id/exclude_products"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_other"
+                    tools:ignore="TouchTargetSizeCheck" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Замените ConstraintLayout с id "exclude_products" на этот код -->
+
+            <!--
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:text="@string/question_diet"
+                            android:textStyle="bold" />
+
+
+            <RadioGroup
+                android:id="@+id/diet_radio_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="6dp">
+
+                <RadioButton
+                    android:id="@+id/rb_mediterranean"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mediterranean"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <RadioButton
+                    android:id="@+id/rb_vegetarianism"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vegetarianism"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <RadioButton
+                    android:id="@+id/rb_veganism"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/veganism"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <RadioButton
+                    android:id="@+id/rb_low_carb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/low_carb"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <RadioButton
+                    android:id="@+id/rb_gluten_free"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/gluten_free"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <RadioButton
+                    android:id="@+id/rb_keto_diet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/keto_diet"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <RadioButton
+                    android:id="@+id/rb_dash_diet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dash_diet"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <RadioButton
+                    android:id="@+id/rb_paleo_diet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/paleo_diet"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+
+                <RadioButton
+                    android:id="@+id/rb_no_diet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="15dp"
+                    android:text="@string/no_diet"
+                    tools:ignore="TouchTargetSizeCheck" />
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="@string/choose_like_kitchen"
+                android:textStyle="bold" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/like_kitchen"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="6dp">
+
+                <CheckBox
+                    android:id="@+id/cb_italy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cb_italy"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toTopOf="@+id/like_kitchen"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_japan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/cb_japan"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toTopOf="@+id/like_kitchen"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_china"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cb_china"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_italy"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_russia"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/cb_russia"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_italy"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_thailand"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cb_thailand"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_china"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_france"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/cb_france"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_china"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+
+                <CheckBox
+                    android:id="@+id/cb_mexico"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cb_mexico"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_thailand"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_spain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/cb_spain"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_thailand"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_turkey"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cb_turkey"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_mexico"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_greece"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="200dp"
+                    android:text="@string/cb_greece"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_mexico"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_other_kitchen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cb_other"
+                    app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_turkey"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <EditText
+                    android:id="@+id/et_other_kitchen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15dp"
+                    android:ems="12"
+                    android:hint="@string/enter_other"
+                    android:inputType="textCapSentences"
+                    android:minHeight="0dp"
+                    android:padding="7dp"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toEndOf="@+id/cb_other_kitchen"
+                    app:layout_constraintTop_toBottomOf="@+id/cb_turkey"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+-->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="@string/question_type_dish"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/category_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:paddingStart="10dp"
+                style="@style/DarkerColor"
+                android:text="(можно выбрать несколько вариантов)"
+                android:textStyle="italic"
+                />
+            <TextView
+                android:id="@+id/category_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/red"
+                android:textSize="15sp"
+                android:paddingStart="10dp"
+                android:visibility="gone"
+                android:text="Пожалуйста, выберите хотя бы одну категорию блюд"
+                android:textStyle="italic"
+                />
+
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/allergy_chip_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:selectionRequired="false"
+                android:paddingTop="10dp"
+                app:singleSelection="false">
+
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_soup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_soup"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_salad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_salad"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_main_course"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_main_course"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_side_dish"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_side_dish"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_dessert"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_dessert"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_baked_goods"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_baked_goods"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_snacks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_snacks"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_appetizers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_appetizers"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_drink"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_drink"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_sauces_and_seasonings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/category_sauces_and_seasonings"
+                    tools:ignore="TouchTargetSizeCheck" />
+            </com.google.android.material.chip.ChipGroup>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/layout_button"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/btn_skip"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_button_empty"
+            android:padding="7dp"
+            android:text="@string/cold_start_later"
+            android:textSize="18sp" />
+
+        <View
+            android:layout_width="20dp"
+            android:layout_height="match_parent">
+
+        </View>
+
+        <Button
+            android:id="@+id/btn_finish"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="7dp"
+            android:text="@string/cold_start_btn_complete"
+            android:textSize="18sp"
+
+            />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/uploadProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

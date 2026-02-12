@@ -11,6 +11,9 @@
     <color name="main_dark_theam">#094384</color>
     <color name="main_dark_theam2">#056FE8</color>
     <color name="background_dark_theam">#0C0B25</color>
+    <color name="background_spinner">#FAFAFA</color>
+    <color name="background_card">#060A3C</color>
+
 
 
 </resources>
