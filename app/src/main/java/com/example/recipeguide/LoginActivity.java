@@ -1,5 +1,6 @@
 package com.example.recipeguide;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -177,6 +178,11 @@ public class LoginActivity extends AppCompatActivity {
                                     //myRef.child(user.getUid()).child("imageUrl").setValue(null);
                                     myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
 
+                                    if (User.allergy != null && User.likeCategory != null) {
+                                        myRef.child(user.getUid()).child("allergies").setValue(User.allergy);
+                                        myRef.child(user.getUid()).child("likeCategory").setValue(User.likeCategory);
+                                    }
+
                                     User.username = username.getEditText().getText().toString().trim();
                                     User.userImage = null;
 
@@ -217,7 +223,25 @@ public class LoginActivity extends AppCompatActivity {
                                     } else {
                                         User.username = String.valueOf(taskProfile.getResult().child("username").getValue());
                                         User.userImage = String.valueOf(taskProfile.getResult().child("imageUrl").getValue());
+                                        String allergies = taskProfile.getResult().child("allergies").getValue(String.class);
+                                        String likeCategory = taskProfile.getResult().child("likeCategory").getValue(String.class);
                                         myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
+
+                                        if (allergies == null && likeCategory == null && User.allergy != null && User.likeCategory != null) {
+                                            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                                            builder.setTitle(getString(R.string.synchronization_questionnaire));
+                                            builder.setMessage(getString(R.string.synchronization_message));
+                                            builder.setPositiveButton(getString(R.string.confirm), (dialog, which) -> {
+                                                myRef.child(user.getUid()).child("allergies").setValue(User.allergy);
+                                                myRef.child(user.getUid()).child("likeCategory").setValue(User.likeCategory);
+                                                dialog.dismiss();
+                                            });
+                                            builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
+                                            AlertDialog dialog = builder.create();
+                                            dialog.show();
+                                        }else if(allergies != null && likeCategory != null){
+                                            User.updateFromQuestionnaire(allergies, likeCategory);
+                                        }
 
                                         sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
                                         editor = sharedPreferences.edit();
@@ -372,7 +396,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (callback != null) callback.onRecipesLoaded(idList);
                 } catch (Exception e) {
                     if (callback != null)
-                        Log.e("Firebase", getString(R.string.error_loaded) );
+                        Log.e("Firebase", getString(R.string.error_loaded));
 
                 }
             }
@@ -415,6 +439,23 @@ public class LoginActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    private void showSaveQuestionnaire(String allergies, String likeCategory) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Синхронизация анкеты");
+        builder.setMessage("Хотите сохранить данные об аллергенах и любимых категориях в ваш аккаунт?");
+        builder.setPositiveButton(getString(R.string.confirm), (dialog, which) -> {
+            sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
+            editor = sharedPreferences.edit();
+            editor.putString("username", User.username);
+            editor.putString("userImage", User.userImage);
+            editor.apply();
+            dialog.dismiss();
+        });
+        builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     public void goBack(View view) {

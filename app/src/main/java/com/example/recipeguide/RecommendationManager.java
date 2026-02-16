@@ -1,6 +1,7 @@
 package com.example.recipeguide;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -47,6 +48,31 @@ public class RecommendationManager {
 
         return allergiesList.isEmpty() ? null : allergiesList;
     }
+    // Метод для преобразования строки категорий в список Integer
+    private List<Integer> getUserCategoriesFromString(String categoriesString) {
+        List<Integer> categories = new ArrayList<>();
+
+        if (categoriesString == null || categoriesString.trim().isEmpty()) {
+            return categories; // возвращаем пустой список
+        }
+
+        try {
+            // Разделяем по запятым с возможными пробелами
+            String[] parts = categoriesString.split("\\s*,\\s*");
+
+            for (String part : parts) {
+                if (!part.trim().isEmpty()) {
+                    // Парсим число
+                    int category = Integer.parseInt(part.trim());
+                    categories.add(category);
+                }
+            }
+        } catch (NumberFormatException e) {
+            Log.e("UserCategories", "Ошибка парсинга категорий: " + categoriesString, e);
+        }
+
+        return categories;
+    }
     // lastDays: сколько дней истории учитываем
     public float[] buildUserVector(String userId, int lastDays) {
         long sinceTs = System.currentTimeMillis() - (long) lastDays * 24 * 3600 * 1000;
@@ -87,8 +113,11 @@ public class RecommendationManager {
         if (all == null || all.isEmpty()) return Collections.emptyList();
 
         List<String> userAllergies = getUserAllergies();
+        List<Integer> userCategories = getUserCategoriesFromString(User.likeCategory);
+
         PriorityQueue<Map.Entry<String, Float>> pq = new PriorityQueue<>(Comparator.comparing(Map.Entry::getValue));
         Map<String, float[]> vecCache = new HashMap<>();
+        Map<String, Recipe> recipeMap = new HashMap<>(); // Сохраняем объекты рецептов
 
         for (Recipe r : all) {
             if (r.getVectors() == null) continue;
@@ -116,6 +145,7 @@ public class RecommendationManager {
             }
             float[] rv = VectorUtils.bytesToFloats(r.getVectors());
             vecCache.put(r.getId(), rv);
+            recipeMap.put(r.getId(), r);
             float score = VectorUtils.cosine(userVec, rv);
             if (pq.size() < candidatesK) {
                 pq.offer(new AbstractMap.SimpleEntry<>(r.getId(), score));
@@ -133,6 +163,27 @@ public class RecommendationManager {
         // greedy diversity
         List<String> selected = new ArrayList<>();
         List<float[]> selectedVecs = new ArrayList<>();
+
+        if (userCategories != null && !userCategories.isEmpty()) {
+            for (Map.Entry<String, Float> cand : candidates) {
+                String rid = cand.getKey();
+                Recipe recipe = recipeMap.get(rid);
+
+                if (recipe != null && userCategories.contains(recipe.getCategory())) {
+                    float[] rv = vecCache.get(rid);
+                    boolean skip = false;
+                    for (float[] sv : selectedVecs) {
+                        if (VectorUtils.cosine(sv, rv) > 0.92f) { skip = true; break; }
+                    }
+                    if (!skip) {
+                        selected.add(rid);
+                        selectedVecs.add(rv);
+                        break;
+                    }
+                }
+            }
+        }
+
         for (Map.Entry<String, Float> cand : candidates) {
             if (selected.size() >= finalCount) break;
             String rid = cand.getKey();

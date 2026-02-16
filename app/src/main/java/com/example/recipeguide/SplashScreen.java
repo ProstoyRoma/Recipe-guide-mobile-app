@@ -72,6 +72,8 @@ public class SplashScreen extends AppCompatActivity {
         editor = sharedPreferences.edit();
         User.username = sharedPreferences.getString("username", User.username);
         User.userImage = sharedPreferences.getString("userImage", User.userImage);
+        User.allergy = sharedPreferences.getString("userAllergy", User.allergy);
+        User.likeCategory = sharedPreferences.getString("userLikeCategory", User.likeCategory);
 
         final AtomicBoolean started = new AtomicBoolean(false);
         final long MIN_DISPLAY_MS = 2500L;

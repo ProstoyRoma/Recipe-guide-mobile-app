@@ -143,6 +143,14 @@
     <string name="milk">Молоко</string>
     <string name="question_allergy">Какие продукты/аллергены вы хотите исключить из рекомендаций?</string>
     <string name="title_questionnaire">Помогите нам узнать вас лучше!</string>
+    <string name="allergy_error">Пожалуйста, ответьте на вопрос</string>
+    <string name="category_hint">(можно выбрать несколько вариантов)</string>
+    <string name="category_error">Пожалуйста, выберите хотя бы одну категорию блюд</string>
+    <string name="toast_FB_questionnaire">Для сохранения данных в облаке необходимо войти в аккаунт.</string>
+    <string name="error_save_questionnaire">Ошибка сохранения</string>
+    <string name="error_ET_allergy">Пожалуйста, укажите какой продукт хотите исключить</string>
+    <string name="synchronization_questionnaire">Синхронизация анкеты</string>
+    <string name="synchronization_message">Хотите сохранить данные об аллергенах и любимых категориях в ваш аккаунт?</string>
 
     <string-array name="categories_array">
         <item>Выбрать</item>

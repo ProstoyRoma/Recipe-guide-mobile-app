@@ -83,6 +83,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
     private FirebaseDatabase database;
     private DatabaseReference myRef;
     SharedPreferences sharedPreferences;
+    SharedPreferences.Editor editor;
     private ColorStateList currentTint;
 
 
@@ -350,10 +351,16 @@ public class QuestionnaireActivity extends AppCompatActivity {
             saveToFirebase(user, allergies, categoriesString);
         }
         // 6. Обновляем статический класс User
-        User.updateFromQuestionnaire(allergies, categoryNumbers);
+        User.updateFromQuestionnaire(allergies, categoriesString);
 
         // 7. Показываем результат и закрываем активность
         if (dbResult != -1) {
+            sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
+            editor = sharedPreferences.edit();
+            editor.putString("userAllergy", User.allergy);
+            editor.putString("userLikeCategory", User.likeCategory);
+            editor.apply();
+
             /*SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
@@ -365,7 +372,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 public void onSuccess() {
                     // Запускаем MainScreen сразу после успешной загрузки рекомендаций
                     runOnUiThread(() -> {
-                        Toast.makeText(QuestionnaireActivity.this, "Для сохранения данных в облаке необходимо войти в аккаунт.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(QuestionnaireActivity.this, getString(R.string.toast_FB_questionnaire), Toast.LENGTH_LONG).show();
                         uploadPB.setVisibility(View.GONE);
 
                         Intent intent = new Intent(QuestionnaireActivity.this, MainScreen.class);
@@ -387,7 +394,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
             });
         } else {
             uploadPB.setVisibility(View.GONE);
-            Toast.makeText(this, "Ошибка сохранения", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.error_save_questionnaire), Toast.LENGTH_SHORT).show();
         }
     }
     // Метод для показа диалога
@@ -426,7 +433,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 otherAllergy.setBackgroundTintList(currentTint);
 
                 errorAllergy.setVisibility(View.VISIBLE);
-                errorAllergy.setText("Пожалуйста, укажите какой продукт хотите исключить");
+                errorAllergy.setText(getString(R.string.error_ET_allergy));
             }else{
                 TypedValue typedValue = new TypedValue();
                 getTheme().resolveAttribute(android.R.attr.colorControlActivated, typedValue, true);
@@ -434,7 +441,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 otherAllergy.setBackgroundTintList(ColorStateList.valueOf(colorPrimary));
 
                 errorAllergy.setVisibility(View.GONE);
-                errorAllergy.setText("Пожалуйста, ответьте на вопрос");
+                errorAllergy.setText(getString(R.string.allergy_error));
             }
             hasAllergySelected = true; // "Другое" считается выбранным аллергеном
         }else{
@@ -444,7 +451,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
             otherAllergy.setBackgroundTintList(ColorStateList.valueOf(colorPrimary));
 
             errorAllergy.setVisibility(View.GONE);
-            errorAllergy.setText("Пожалуйста, ответьте на вопрос");
+            errorAllergy.setText(getString(R.string.allergy_error));
         }
 
         if (!hasAllergySelected) {

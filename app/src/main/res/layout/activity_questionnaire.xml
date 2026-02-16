@@ -54,7 +54,7 @@
                 android:textSize="15sp"
                 android:paddingStart="10dp"
                 android:visibility="gone"
-                android:text="Пожалуйста, ответьте на вопрос"
+                android:text="@string/allergy_error"
                 android:textStyle="italic"
                  />
 
@@ -411,7 +411,7 @@
                 android:textSize="15sp"
                 android:paddingStart="10dp"
                 style="@style/DarkerColor"
-                android:text="(можно выбрать несколько вариантов)"
+                android:text="@string/category_hint"
                 android:textStyle="italic"
                 />
             <TextView
@@ -422,7 +422,7 @@
                 android:textSize="15sp"
                 android:paddingStart="10dp"
                 android:visibility="gone"
-                android:text="Пожалуйста, выберите хотя бы одну категорию блюд"
+                android:text="@string/category_error"
                 android:textStyle="italic"
                 />
 
