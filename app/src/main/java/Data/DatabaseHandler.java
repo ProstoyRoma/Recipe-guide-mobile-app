@@ -587,12 +587,15 @@ public class DatabaseHandler extends SQLiteAssetHelper {
     }
 
     // Метод для сохранения данных анкеты
-    public long saveUserPreferences(String username, String allergies, String categories) {
+    public long saveUserPreferences(String username, String allergies, String diet, String cuisine, String categories, String skillLevel) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
         values.put(Util.KEY_USER_ID, username);
         values.put(Util.KEY_ALLERGIES, allergies);
+        values.put(Util.KEY_DIET, diet);
+        values.put(Util.KEY_SKILLLEVEL, skillLevel);
+        values.put(Util.KEY_LIKECUISINE, cuisine);
         values.put(Util.KEY_LIKECATEGORIES, categories);
 
         // Удаляем старые записи для этого пользователя (опционально)

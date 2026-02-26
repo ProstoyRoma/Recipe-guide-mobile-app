@@ -148,8 +148,13 @@
     <string name="toast_FB_questionnaire">To save data to the cloud, you must log in to your account.</string>
     <string name="error_save_questionnaire">Save error</string>
     <string name="error_ET_allergy">Please indicate which product you would like to exclude</string>
+    <string name="error_ET_cuisine">Please indicate your favorite cuisine.</string>
     <string name="synchronization_questionnaire">Synchronization of the questionnaire</string>
     <string name="synchronization_message">Want to save allergen and favorite category data to your account?</string>
+    <string name="beginner">Beginner</string>
+    <string name="intermediate">Intermediate</string>
+    <string name="expert">Expert</string>
+    <string name="skill_level">Choose your culinary skill level</string>
 
     <string-array name="categories_array">
         <item>Select</item>

@@ -232,7 +232,8 @@ public class ReorderActivity extends AppCompatActivity {
     }
 
     public void toggleLater(View view) {
-        Intent intent = new Intent(this, MainScreen.class);
+        //Intent intent = new Intent(this, MainScreen.class);
+        Intent intent = new Intent(this, QuestionnaireActivity.class);
         startActivity(intent);
         finish();
     }
@@ -242,11 +243,11 @@ public class ReorderActivity extends AppCompatActivity {
         for (String r : liked) {
             databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), User.username, "cook", r, System.currentTimeMillis());
         }
-        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        /*SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putBoolean(KEY_REORDER, true);
-        editor.apply();
+        editor.apply();*/
 
         databaseHandler.getRecommendedRecipe(this, new RecommendedCallback() {
             @Override

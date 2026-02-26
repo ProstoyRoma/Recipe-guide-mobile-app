@@ -73,7 +73,10 @@ public class SplashScreen extends AppCompatActivity {
         User.username = sharedPreferences.getString("username", User.username);
         User.userImage = sharedPreferences.getString("userImage", User.userImage);
         User.allergy = sharedPreferences.getString("userAllergy", User.allergy);
+        User.diet = sharedPreferences.getString("userDiet", User.diet);
         User.likeCategory = sharedPreferences.getString("userLikeCategory", User.likeCategory);
+        User.likeCuisine = sharedPreferences.getString("userLikeCuisine", User.likeCuisine);
+        User.skillLevel = sharedPreferences.getString("userSkillLevel", User.skillLevel);
 
         final AtomicBoolean started = new AtomicBoolean(false);
         final long MIN_DISPLAY_MS = 2500L;

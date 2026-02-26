@@ -1,8 +1,6 @@
 package com.example.recipeguide;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -11,21 +9,21 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -33,27 +31,20 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
-import com.google.gson.Gson;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import Data.DatabaseHandler;
-import Model.QuestionnaireModel;
 
 /**
  * QuestionnaireActivity
@@ -71,11 +62,11 @@ public class QuestionnaireActivity extends AppCompatActivity {
 
     private CheckBox cbNuts, cbMilk, cbEggs, cbFish, cbWheat, cbSoy, cbPeanuts, cbShellfish, cbOtherAllergy, cbNoAllergy,
             cbItaly, cbJapan, cbChina, cbRussia, cbThailand, cbMexico, cbFrance, cbSpain, cbTurkey, cbGreece, cbOtherKitchen;
-    private RadioGroup dietRadioGroup; // Если переделали на RadioGroup
+    private RadioGroup dietRadioGroup, skillLevelRadioGroup; // Если переделали на RadioGroup
     private ChipGroup categoryChipGroup;
     private Button btnSkip, btnFinish;
     private EditText otherAllergy, otherKitchen;
-    private TextView errorAllergy, errorCategory, hintCategory;
+    private TextView errorAllergy, errorCategory, hintCategory, errorDiet, errorCuisine, errorSkillLevel;
     private ProgressBar uploadPB;
     private List<CheckBox> allergyCheckBoxes = new ArrayList<>();
     private DatabaseHandler db;
@@ -87,11 +78,17 @@ public class QuestionnaireActivity extends AppCompatActivity {
     private ColorStateList currentTint;
 
 
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_questionnaire);
+
+        EdgeToEdge.enable(this);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.questionnaire), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         db = new DatabaseHandler(this);
         mAuth = FirebaseAuth.getInstance();
@@ -101,6 +98,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         initViews();
         setupButtons();
         initAllergyCheckBox();
+        initCuisineCheckBox();
     }
 
     private void initViews() {
@@ -126,34 +124,55 @@ public class QuestionnaireActivity extends AppCompatActivity {
         allergyCheckBoxes.add(cbOtherAllergy); // Добавляем "Другое"
         allergyCheckBoxes.add(cbNoAllergy); // Добавляем "Нет аллергий"
 
-        //dietRadioGroup = findViewById(R.id.diet_radio_group)
+        dietRadioGroup = findViewById(R.id.diet_radio_group);
+        skillLevelRadioGroup = findViewById(R.id.diet_radio_group);
 
-        /*cbItaly = findViewById(R.id.cb_italy);
+        cbItaly = findViewById(R.id.cb_italy);
         cbJapan = findViewById(R.id.cb_japan);
         cbChina = findViewById(R.id.cb_china);
         cbRussia = findViewById(R.id.cb_russia);
         cbThailand = findViewById(R.id.cb_thailand);
-        cbFish = findViewById(R.id.cb_france);
+        cbFrance= findViewById(R.id.cb_france);
         cbMexico = findViewById(R.id.cb_mexico);
         cbSpain = findViewById(R.id.cb_spain);
         cbTurkey = findViewById(R.id.cb_turkey);
         cbGreece = findViewById(R.id.cb_greece);
-        cbOtherKitchen = findViewById(R.id.cb_other_kitchen);*/
+        cbOtherKitchen = findViewById(R.id.cb_other_kitchen);
 
-        errorAllergy=findViewById(R.id.allergy_error);
-        errorCategory=findViewById(R.id.category_error);
-        hintCategory=findViewById(R.id.category_hint);
+        errorAllergy = findViewById(R.id.allergy_error);
+        errorCategory = findViewById(R.id.category_error);
+        hintCategory = findViewById(R.id.category_hint);
+        errorDiet = findViewById(R.id.diet_error);
+        errorCuisine = findViewById(R.id.cuisine_error);
+        errorSkillLevel = findViewById(R.id.skill_level_error);
 
         otherAllergy = findViewById(R.id.et_other);
-        //otherKitchen = findViewById(R.id.et_other_kitchen);
+        otherKitchen = findViewById(R.id.et_other_kitchen);
 
         categoryChipGroup = findViewById(R.id.allergy_chip_group);
 
-        uploadPB=findViewById(R.id.uploadProgressBar);
+        uploadPB = findViewById(R.id.uploadProgressBar);
 
         btnSkip = findViewById(R.id.btn_skip);
         btnFinish = findViewById(R.id.btn_finish);
 
+    }
+
+    private void initCuisineCheckBox() {
+        // 1. Обработка чекбокса "Другое"
+        cbOtherKitchen.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                // Показываем/скрываем EditText в зависимости от состояния
+                if (isChecked) {
+                    otherKitchen.setVisibility(View.VISIBLE);
+                    otherKitchen.requestFocus(); // Фокус на поле для ввода
+
+                } else {
+                    otherKitchen.setVisibility(View.GONE);
+                }
+            }
+        });
     }
 
     private void initAllergyCheckBox() {
@@ -219,7 +238,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         });
 
         btnFinish.setOnClickListener(v -> {
-            if(validateQuestionnaire()) {
+            if (validateQuestionnaire()) {
                 uploadPB.setVisibility(View.VISIBLE);
                 saveQuestionnaireData();
             }
@@ -245,7 +264,10 @@ public class QuestionnaireActivity extends AppCompatActivity {
         // Добавляем "Другое", если заполнено
         String otherAllergyText = otherAllergy.getText().toString().trim();
         String otherAllergyTextTranslate = "";
-        if (cbOtherAllergy.isChecked() && !otherAllergyText.isEmpty()) {
+        String otherKitchenText = otherKitchen.getText().toString().trim();
+        String otherKitchenTextTranslate = "";
+
+        if ((cbOtherAllergy.isChecked() && !otherAllergyText.isEmpty()) || (cbOtherKitchen.isChecked() && !otherKitchenText.isEmpty())) {
             if (sharedPreferences.getBoolean("language", false)) {
 
                 final String[] translatedResult = {""};
@@ -263,13 +285,24 @@ public class QuestionnaireActivity extends AppCompatActivity {
 
                     translator.downloadModelIfNeeded()
                             .addOnSuccessListener(unused -> {
-                                translator.translate(otherAllergyText)
-                                        .addOnSuccessListener(translatedText -> {
-                                            translatedResult[0] = translatedText;
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e("MLKit", "Translation failed: " + e.getMessage());
-                                        });
+                                if (cbOtherAllergy.isChecked() && !otherAllergyText.isEmpty()) {
+                                    translator.translate(otherAllergyText)
+                                            .addOnSuccessListener(translatedText -> {
+                                                translatedResult[0] = translatedText;
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e("MLKit", "Translation failed: " + e.getMessage());
+                                            });
+                                }
+                                if (cbOtherKitchen.isChecked() && !otherKitchenText.isEmpty()) {
+                                    translator.translate(otherKitchenText)
+                                            .addOnSuccessListener(translatedText -> {
+                                                translatedResult[1] = translatedText;
+                                            })
+                                            .addOnFailureListener(e -> {
+                                                Log.e("MLKit", "Translation failed: " + e.getMessage());
+                                            });
+                                }
                             })
                             .addOnFailureListener(e -> {
                                 Log.e("MLKit", "Model download failed: " + e.getMessage());
@@ -278,9 +311,11 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 try {
                     //latch.await(10, TimeUnit.SECONDS);
                     otherAllergyTextTranslate = translatedResult[0];
+                    otherKitchenTextTranslate = translatedResult[1];
                 } catch (Exception e) {
                     Log.e("TRANSLATION", "Translation interrupted", e);
                     otherAllergyTextTranslate = otherAllergyText; // Используем оригинал
+                    otherKitchenTextTranslate = otherKitchenText;
                 }
 
                 // Добавляем в список аллергенов
@@ -288,7 +323,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
                     allergiesBuilder.append(otherAllergyTextTranslate).append(",");
                 }
 
-            }else{
+            } else {
                 allergiesBuilder.append(otherAllergyText).append(",");
             }
         }
@@ -299,6 +334,52 @@ public class QuestionnaireActivity extends AppCompatActivity {
             allergies = allergiesBuilder.substring(0, allergiesBuilder.length() - 1);
         }
 
+        // В вашем методе или там, где нужно получить значение
+        String selectedDiet = "";
+
+        int selectedId = dietRadioGroup.getCheckedRadioButtonId();
+
+        if (selectedId == R.id.rb_mediterranean) {
+            selectedDiet = "Mediterranean Diet";
+        } else if (selectedId == R.id.rb_vegetarianism) {
+            selectedDiet = "Vegetarianism";
+        } else if (selectedId == R.id.rb_veganism) {
+            selectedDiet = "Veganism";
+        } else if (selectedId == R.id.rb_low_carb) {
+            selectedDiet = "Low-Carb Diet";
+        } else if (selectedId == R.id.rb_gluten_free) {
+            selectedDiet = "Gluten-Free Diet";
+        } else if (selectedId == R.id.rb_keto_diet) {
+            selectedDiet = "Keto Diet";
+        } else if (selectedId == R.id.rb_dash_diet) {
+            selectedDiet = "DASH Diet";
+        } else if (selectedId == R.id.rb_paleo_diet) {
+            selectedDiet = "Paleo Diet";
+        } else if (selectedId == R.id.rb_no_diet) {
+            selectedDiet = "null"; // или "No Diet" если нужно
+        }
+
+
+        // 3. Собираем кухни в одну строку через запятую
+        StringBuilder cuisineBuilder = new StringBuilder();
+
+        // Основные аллергены
+        if (cbItaly.isChecked()) cuisineBuilder.append("Italian,");
+        if (cbJapan.isChecked()) cuisineBuilder.append("Japanese,");
+        if (cbChina.isChecked()) cuisineBuilder.append("Chinese,");
+        if (cbRussia.isChecked()) cuisineBuilder.append("Russian,");
+        if (cbThailand.isChecked()) cuisineBuilder.append("Thai,");
+        if (cbFrance.isChecked()) cuisineBuilder.append("French,");
+        if (cbMexico.isChecked()) cuisineBuilder.append("Mexican,");
+        if (cbSpain.isChecked()) cuisineBuilder.append("Spanish,");
+        if (cbTurkey.isChecked()) cuisineBuilder.append("Turkish");
+        if (cbGreece.isChecked()) cuisineBuilder.append("Greek");
+
+        // Убираем последнюю запятую
+        String cuisine = "";
+        if (cuisineBuilder.length() > 0) {
+            cuisine = cuisineBuilder.substring(0, cuisineBuilder.length() - 1);
+        }
         // 2. Собираем категории как цифры
         ArrayList<Integer> categoryNumbers = new ArrayList<>();
 
@@ -338,27 +419,45 @@ public class QuestionnaireActivity extends AppCompatActivity {
             categoriesString = categoriesBuilder.substring(0, categoriesBuilder.length() - 1);
         }
 
+        String selectedSkillLevel = "";
+
+        int selectedIdSL = skillLevelRadioGroup.getCheckedRadioButtonId();
+
+        if (selectedIdSL == R.id.rb_beginner) {
+            selectedSkillLevel = "Beginner";
+        } else if (selectedIdSL == R.id.rb_intermediate) {
+            selectedSkillLevel = "Intermediate";
+        } else if (selectedIdSL == R.id.rb_expert) {
+            selectedSkillLevel = "Expert";
+        }
+
         // 4. Сохраняем в SQLite
         long dbResult = db.saveUserPreferences(
                 User.username,
                 allergies,
-                categoriesString
+                selectedDiet,
+                cuisine,
+                categoriesString,
+                selectedSkillLevel
         );
 
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             // 5. Сохраняем в Firebase
-            saveToFirebase(user, allergies, categoriesString);
+            saveToFirebase(user, allergies, selectedDiet, cuisine, categoriesString, selectedSkillLevel);
         }
         // 6. Обновляем статический класс User
-        User.updateFromQuestionnaire(allergies, categoriesString);
+        User.updateFromQuestionnaire(allergies, selectedDiet, cuisine, categoriesString, selectedSkillLevel);
 
         // 7. Показываем результат и закрываем активность
         if (dbResult != -1) {
             sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
             editor = sharedPreferences.edit();
             editor.putString("userAllergy", User.allergy);
+            editor.putString("userDiet", User.diet);
             editor.putString("userLikeCategory", User.likeCategory);
+            editor.putString("userLikeCuisine", User.likeCuisine);
+            editor.putString("userSkillLevel", User.skillLevel);
             editor.apply();
 
             /*SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
@@ -399,12 +498,16 @@ public class QuestionnaireActivity extends AppCompatActivity {
     }
     // Метод для показа диалога
 
-    private void saveToFirebase(FirebaseUser user, String allergies, String categoriesString) {
+    private void saveToFirebase(FirebaseUser user, String allergies, String diet, String cuisine,
+                                String categories, String skillLevel) {
         try {
             database = FirebaseDatabase.getInstance();
             myRef = database.getReference("users");
             myRef.child(user.getUid()).child("allergies").setValue(allergies);
-            myRef.child(user.getUid()).child("likeCategory").setValue(categoriesString);
+            myRef.child(user.getUid()).child("diet").setValue(diet);
+            myRef.child(user.getUid()).child("likeCategory").setValue(categories);
+            myRef.child(user.getUid()).child("likeCuisine").setValue(cuisine);
+            myRef.child(user.getUid()).child("skillLevel").setValue(skillLevel);
             myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
         } catch (Exception e) {
             Log.e("FIREBASE", "Firebase error", e);
@@ -434,7 +537,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
 
                 errorAllergy.setVisibility(View.VISIBLE);
                 errorAllergy.setText(getString(R.string.error_ET_allergy));
-            }else{
+            } else {
                 TypedValue typedValue = new TypedValue();
                 getTheme().resolveAttribute(android.R.attr.colorControlActivated, typedValue, true);
                 int colorPrimary = typedValue.data;
@@ -444,7 +547,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 errorAllergy.setText(getString(R.string.allergy_error));
             }
             hasAllergySelected = true; // "Другое" считается выбранным аллергеном
-        }else{
+        } else {
             TypedValue typedValue = new TypedValue();
             getTheme().resolveAttribute(android.R.attr.colorControlActivated, typedValue, true);
             int colorPrimary = typedValue.data;
@@ -458,7 +561,68 @@ public class QuestionnaireActivity extends AppCompatActivity {
             errorAllergy.setVisibility(View.VISIBLE);
         }
 
-        // 2. Проверка категорий: хотя бы один Chip выбран
+
+        boolean hasDietSelected = false;
+        int selectedId = dietRadioGroup.getCheckedRadioButtonId();
+
+        if (selectedId != -1) {
+            hasDietSelected = true;
+            errorDiet.setVisibility(View.GONE);
+        } else {
+            hasDietSelected = false;
+            errorDiet.setVisibility(View.VISIBLE);
+
+        }
+
+
+        boolean hasCuisineSelected = false;
+        boolean hasOtherCuisineFilled = true; // По умолчанию true, если "Другое" не выбрано
+
+        // Проверяем основные аллергены
+        hasCuisineSelected = cbGreece.isChecked() || cbTurkey.isChecked() || cbSpain.isChecked() ||
+                cbFrance.isChecked() || cbMexico.isChecked() || cbThailand.isChecked() ||
+                cbRussia.isChecked() || cbChina.isChecked() || cbJapan.isChecked() ||
+                cbItaly.isChecked();
+
+        // Если выбран "Другое", проверяем заполненность EditText
+        if (cbOtherKitchen.isChecked()) {
+            String otherText = otherKitchen.getText().toString().trim();
+            // Убираем пунктуацию и проверяем, остался ли текст
+            String textWithoutPunctuation = otherText.replaceAll("[\\p{Punct}\\s]+", "");
+            hasOtherCuisineFilled = !textWithoutPunctuation.isEmpty();
+
+            if (!hasOtherCuisineFilled) {
+                currentTint = ColorStateList.valueOf(Color.RED); // Сохраняем цвет ошибки
+                otherKitchen.setBackgroundTintList(currentTint);
+
+                errorCuisine.setVisibility(View.VISIBLE);
+                errorCuisine.setText(getString(R.string.error_ET_cuisine));
+            } else {
+                TypedValue typedValue = new TypedValue();
+                getTheme().resolveAttribute(android.R.attr.colorControlActivated, typedValue, true);
+                int colorPrimary = typedValue.data;
+                otherKitchen.setBackgroundTintList(ColorStateList.valueOf(colorPrimary));
+
+                errorCuisine.setVisibility(View.GONE);
+                errorCuisine.setText(getString(R.string.allergy_error));
+            }
+            hasCuisineSelected = true; // "Другое" считается выбранным аллергеном
+        } else {
+            TypedValue typedValue = new TypedValue();
+            getTheme().resolveAttribute(android.R.attr.colorControlActivated, typedValue, true);
+            int colorPrimary = typedValue.data;
+            otherKitchen.setBackgroundTintList(ColorStateList.valueOf(colorPrimary));
+
+            errorCuisine.setVisibility(View.GONE);
+            errorCuisine.setText(getString(R.string.allergy_error));
+        }
+
+        if (!hasCuisineSelected) {
+            errorCuisine.setVisibility(View.VISIBLE);
+        }
+
+
+        // 4. Проверка категорий: хотя бы один Chip выбран
         boolean hasCategorySelected = false;
         for (int i = 0; i < categoryChipGroup.getChildCount(); i++) {
             Chip chip = (Chip) categoryChipGroup.getChildAt(i);
@@ -471,12 +635,26 @@ public class QuestionnaireActivity extends AppCompatActivity {
         if (!hasCategorySelected) {
             errorCategory.setVisibility(View.VISIBLE);
             hintCategory.setVisibility(View.GONE);
-        }else {
+        } else {
             errorCategory.setVisibility(View.GONE);
             hintCategory.setVisibility(View.VISIBLE);
         }
 
-        return hasCategorySelected && hasAllergySelected && hasOtherAllergyFilled;
+
+        boolean hasSkillLevelSelected = false;
+        int selectedIdSL = skillLevelRadioGroup.getCheckedRadioButtonId();
+
+        if (selectedIdSL != -1) {
+            hasSkillLevelSelected = true;
+            errorSkillLevel.setVisibility(View.GONE);
+        } else {
+            hasSkillLevelSelected = false;
+            errorSkillLevel.setVisibility(View.VISIBLE);
+
+        }
+
+        return hasCategorySelected && hasAllergySelected && hasOtherAllergyFilled && hasDietSelected &&
+                hasCuisineSelected && hasOtherCuisineFilled && hasSkillLevelSelected;
     }
 
 }

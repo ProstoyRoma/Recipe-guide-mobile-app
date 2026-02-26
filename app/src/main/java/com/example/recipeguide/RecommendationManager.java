@@ -73,6 +73,26 @@ public class RecommendationManager {
 
         return categories;
     }
+
+    /*private float calculateTagBoost(Recipe recipe, Map<String, Float> userTags, List<Integer> userCategories) {
+        float boost = 0f;
+
+        // Буст за совпадение с категориями пользователя
+        if (userCategories != null && userCategories.contains(recipe.getCategory())) {
+            boost += 0.3f; // +30% к весу
+        }
+
+        // Буст за теги (кухня, диета, уровень)
+        List<Tag> recipeTags = db.getTagsForRecipe(recipe.getId());
+        for (Tag tag : recipeTags) {
+            Float userPreference = userTags.get(tag.getName());
+            if (userPreference != null) {
+                boost += userPreference * tag.getWeight(); // вес тега * предпочтение
+            }
+        }
+
+        return Math.min(boost, 0.5f); // Ограничиваем максимальный буст
+    }*/
     // lastDays: сколько дней истории учитываем
     public float[] buildUserVector(String userId, int lastDays) {
         long sinceTs = System.currentTimeMillis() - (long) lastDays * 24 * 3600 * 1000;

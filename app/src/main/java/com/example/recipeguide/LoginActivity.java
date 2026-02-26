@@ -178,9 +178,12 @@ public class LoginActivity extends AppCompatActivity {
                                     //myRef.child(user.getUid()).child("imageUrl").setValue(null);
                                     myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
 
-                                    if (User.allergy != null && User.likeCategory != null) {
+                                    if (User.allergy != null && User.likeCategory != null && User.diet != null && User.likeCuisine !=null && User.skillLevel != null) {
                                         myRef.child(user.getUid()).child("allergies").setValue(User.allergy);
+                                        myRef.child(user.getUid()).child("diet").setValue(User.diet);
                                         myRef.child(user.getUid()).child("likeCategory").setValue(User.likeCategory);
+                                        myRef.child(user.getUid()).child("likeCuisine").setValue(User.likeCuisine);
+                                        myRef.child(user.getUid()).child("skillLevel").setValue(User.skillLevel);
                                     }
 
                                     User.username = username.getEditText().getText().toString().trim();
@@ -224,23 +227,31 @@ public class LoginActivity extends AppCompatActivity {
                                         User.username = String.valueOf(taskProfile.getResult().child("username").getValue());
                                         User.userImage = String.valueOf(taskProfile.getResult().child("imageUrl").getValue());
                                         String allergies = taskProfile.getResult().child("allergies").getValue(String.class);
+                                        String diet = taskProfile.getResult().child("diet").getValue(String.class);
                                         String likeCategory = taskProfile.getResult().child("likeCategory").getValue(String.class);
+                                        String likeCuisine = taskProfile.getResult().child("likeCuisine").getValue(String.class);
+                                        String skillLevel = taskProfile.getResult().child("skillLevel").getValue(String.class);
                                         myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
 
-                                        if (allergies == null && likeCategory == null && User.allergy != null && User.likeCategory != null) {
+                                        if (allergies == null && likeCategory == null && diet == null && likeCuisine == null && skillLevel == null
+                                                && User.allergy != null && User.likeCategory != null && User.diet != null && User.likeCuisine !=null && User.skillLevel != null) {
                                             AlertDialog.Builder builder = new AlertDialog.Builder(this);
                                             builder.setTitle(getString(R.string.synchronization_questionnaire));
                                             builder.setMessage(getString(R.string.synchronization_message));
                                             builder.setPositiveButton(getString(R.string.confirm), (dialog, which) -> {
                                                 myRef.child(user.getUid()).child("allergies").setValue(User.allergy);
+                                                myRef.child(user.getUid()).child("diet").setValue(User.diet);
                                                 myRef.child(user.getUid()).child("likeCategory").setValue(User.likeCategory);
+                                                myRef.child(user.getUid()).child("likeCuisine").setValue(User.likeCuisine);
+                                                myRef.child(user.getUid()).child("skillLevel").setValue(User.skillLevel);
                                                 dialog.dismiss();
                                             });
                                             builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
                                             AlertDialog dialog = builder.create();
                                             dialog.show();
-                                        }else if(allergies != null && likeCategory != null){
-                                            User.updateFromQuestionnaire(allergies, likeCategory);
+                                        }else if(allergies != null && likeCategory != null && diet != null && likeCuisine != null && skillLevel != null){
+                                            User.updateFromQuestionnaire(allergies, diet, likeCuisine, likeCategory, skillLevel);
+
                                         }
 
                                         sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
