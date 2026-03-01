@@ -9,11 +9,21 @@ import java.util.regex.Pattern;
 import Data.DatabaseHandler;
 import Model.Event;
 import Model.Recipe;
+import Model.Tags;
 import Utils.VectorUtils;
 
 public class RecommendationManager {
     private final DatabaseHandler db;
     private static final Map<String, Float> WEIGHTS;
+    private static final float COSINE_WEIGHT = 0.7f;    // 70% - косинусное сходство
+    private static final float TAGS_WEIGHT = 0.3f;      // 30% - теги
+
+    // Веса внутри тегов (нормализованы, сумма = 1.0)
+    private static final float DIET_WEIGHT = 0.45f;
+    private static final float CUISINE_WEIGHT = 0.30f;
+    private static final float CATEGORY_WEIGHT = 0.15f;
+    private static final float SKILL_WEIGHT = 0.10f;
+
     static {
         Map<String, Float> m = new HashMap<>();
         m.put("cook", 3.0f);
@@ -27,9 +37,23 @@ public class RecommendationManager {
     public RecommendationManager(Context ctx) {
         db = new DatabaseHandler(ctx);
     }
+
+    public float calculateFinalScore(float cosineScore,
+                                     Recipe r, List<Tags> tags, List<Integer> userCategories) {
+
+        // 1. Косинусное сходство (уже в диапазоне -1..1, нормализуем до 0..1 если нужно)
+        float normalizedCosine = (cosineScore + 1) / 2; // преобразуем -1..1 -> 0..1
+
+        // 2. Считаем совпадения по тегам
+        float tagScore = getRecipeTags(r, tags, userCategories);
+
+        // 3. Взвешенная сумма
+        float finalScore = COSINE_WEIGHT * normalizedCosine + TAGS_WEIGHT * tagScore;
+
+        return finalScore; // в диапазоне 0..1
+    }
     public List<String> getUserAllergies() {
-        String allergiesString = db.getAllergiesForUser(User.username);
-        db.close();
+        String allergiesString = User.allergy;
 
         if (allergiesString == null || allergiesString.isEmpty() || allergiesString.equalsIgnoreCase("null")) {
             return null;
@@ -48,6 +72,7 @@ public class RecommendationManager {
 
         return allergiesList.isEmpty() ? null : allergiesList;
     }
+
     // Метод для преобразования строки категорий в список Integer
     private List<Integer> getUserCategoriesFromString(String categoriesString) {
         List<Integer> categories = new ArrayList<>();
@@ -74,25 +99,65 @@ public class RecommendationManager {
         return categories;
     }
 
-    /*private float calculateTagBoost(Recipe recipe, Map<String, Float> userTags, List<Integer> userCategories) {
+    private float getRecipeTags(Recipe r, List<Tags> tags, List<Integer> userCategories) {
         float boost = 0f;
 
-        // Буст за совпадение с категориями пользователя
-        if (userCategories != null && userCategories.contains(recipe.getCategory())) {
-            boost += 0.3f; // +30% к весу
-        }
-
-        // Буст за теги (кухня, диета, уровень)
-        List<Tag> recipeTags = db.getTagsForRecipe(recipe.getId());
-        for (Tag tag : recipeTags) {
-            Float userPreference = userTags.get(tag.getName());
-            if (userPreference != null) {
-                boost += userPreference * tag.getWeight(); // вес тега * предпочтение
+        List<Tags> tagsForRecipe = new ArrayList<>();
+        for (Tags tag : tags) {
+            if (tag.getRecipeId().equals(r.getId())) {
+                tagsForRecipe.add(tag);
             }
         }
 
-        return Math.min(boost, 0.5f); // Ограничиваем максимальный буст
-    }*/
+        //1. Категория
+        if (userCategories != null && !userCategories.isEmpty()) {
+            if (r != null && userCategories.contains(r.getCategory())) {
+                boost += CATEGORY_WEIGHT;
+            }
+        }
+
+        //2. Диета
+        if(User.diet != null && !User.diet.isEmpty()){
+            for (Tags tag : tagsForRecipe) {
+                if ("diet".equals(tag.getKey()) && User.diet.equals(tag.getValue())) {
+                    boost += DIET_WEIGHT;
+                }
+            }
+        }
+
+        //3.Любимая кухня
+        if(User.likeCuisine != null && !User.likeCuisine.isEmpty()){
+            for (Tags tag : tagsForRecipe) {
+                if ("cuisine".equals(tag.getKey()) && User.likeCuisine.equals(tag.getValue())) {
+                    boost += CUISINE_WEIGHT;
+                }
+            }
+        }
+
+        //4. Уровень навыков
+        String text = r.getRecipe();
+        int paragraphCount = 0;
+
+        if (text != null) {
+            // Убираем лишние пробелы в начале/конце
+            text = text.trim();
+
+            if (!text.isEmpty()) {
+                // Разделяем по одному или нескольким переносам строк
+                String[] paragraphs = text.split("\\r?\\n+|\\r");
+                paragraphCount = paragraphs.length;
+            }
+        }
+
+        if(User.skillLevel != null && !User.skillLevel.isEmpty()) {
+            if ((User.skillLevel.equals("Beginner") && paragraphCount <= 5) ||(User.skillLevel.equals("Intermediate") && paragraphCount <= 15)){
+                boost += SKILL_WEIGHT;
+            }
+        }
+
+        return boost;
+    }
+
     // lastDays: сколько дней истории учитываем
     public float[] buildUserVector(String userId, int lastDays) {
         long sinceTs = System.currentTimeMillis() - (long) lastDays * 24 * 3600 * 1000;
@@ -132,8 +197,9 @@ public class RecommendationManager {
         List<Recipe> all = db.getAllRecipesWithVectors();
         if (all == null || all.isEmpty()) return Collections.emptyList();
 
-        List<String> userAllergies = getUserAllergies();
         List<Integer> userCategories = getUserCategoriesFromString(User.likeCategory);
+        List<String> userAllergies = getUserAllergies();
+        List<Tags> recipeTags = db.getRecipeTags();
 
         PriorityQueue<Map.Entry<String, Float>> pq = new PriorityQueue<>(Comparator.comparing(Map.Entry::getValue));
         Map<String, float[]> vecCache = new HashMap<>();
@@ -167,11 +233,12 @@ public class RecommendationManager {
             vecCache.put(r.getId(), rv);
             recipeMap.put(r.getId(), r);
             float score = VectorUtils.cosine(userVec, rv);
+            float finalScore = calculateFinalScore(score, recipeMap.get(r.getId()), recipeTags, userCategories);
             if (pq.size() < candidatesK) {
-                pq.offer(new AbstractMap.SimpleEntry<>(r.getId(), score));
-            } else if (score > pq.peek().getValue()) {
+                pq.offer(new AbstractMap.SimpleEntry<>(r.getId(), finalScore));
+            } else if (finalScore > pq.peek().getValue()) {
                 pq.poll();
-                pq.offer(new AbstractMap.SimpleEntry<>(r.getId(), score));
+                pq.offer(new AbstractMap.SimpleEntry<>(r.getId(), finalScore));
             }
         }
 
@@ -184,33 +251,16 @@ public class RecommendationManager {
         List<String> selected = new ArrayList<>();
         List<float[]> selectedVecs = new ArrayList<>();
 
-        if (userCategories != null && !userCategories.isEmpty()) {
-            for (Map.Entry<String, Float> cand : candidates) {
-                String rid = cand.getKey();
-                Recipe recipe = recipeMap.get(rid);
-
-                if (recipe != null && userCategories.contains(recipe.getCategory())) {
-                    float[] rv = vecCache.get(rid);
-                    boolean skip = false;
-                    for (float[] sv : selectedVecs) {
-                        if (VectorUtils.cosine(sv, rv) > 0.92f) { skip = true; break; }
-                    }
-                    if (!skip) {
-                        selected.add(rid);
-                        selectedVecs.add(rv);
-                        break;
-                    }
-                }
-            }
-        }
-
         for (Map.Entry<String, Float> cand : candidates) {
             if (selected.size() >= finalCount) break;
             String rid = cand.getKey();
             float[] rv = vecCache.get(rid);
             boolean skip = false;
             for (float[] sv : selectedVecs) {
-                if (VectorUtils.cosine(sv, rv) > 0.92f) { skip = true; break; }
+                if (VectorUtils.cosine(sv, rv) > 0.92f) {
+                    skip = true;
+                    break;
+                }
             }
             if (!skip) {
                 selected.add(rid);

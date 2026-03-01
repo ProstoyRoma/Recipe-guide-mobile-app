@@ -404,15 +404,10 @@ public class recipe_example_activity extends AppCompatActivity {
                 } else {
                     Log.w("RecipeExample", "Не удалось применить span: start=" + start + " end=" + end + " fullLen=" + ssb.length());
                 }
-
-
-
-
 // Применяем в TextView
                 dishCookingTime.setText(ssb);
+
                 int position = selectedDish.getCategory();
-
-
                 switch (position) {
                     case 0:
                         category = getString(R.string.category_appetizers);

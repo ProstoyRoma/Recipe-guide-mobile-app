@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -90,6 +91,16 @@ public class QuestionnaireActivity extends AppCompatActivity {
             return insets;
         });
 
+        boolean isNightMode = OptionsScreen.getCurrentTheme(this);
+
+        if (isNightMode) {
+            // Действия для тёмной темы
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            // Действия для светлой темы
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+
         db = new DatabaseHandler(this);
         mAuth = FirebaseAuth.getInstance();
 
@@ -132,7 +143,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         cbChina = findViewById(R.id.cb_china);
         cbRussia = findViewById(R.id.cb_russia);
         cbThailand = findViewById(R.id.cb_thailand);
-        cbFrance= findViewById(R.id.cb_france);
+        cbFrance = findViewById(R.id.cb_france);
         cbMexico = findViewById(R.id.cb_mexico);
         cbSpain = findViewById(R.id.cb_spain);
         cbTurkey = findViewById(R.id.cb_turkey);
@@ -375,6 +386,9 @@ public class QuestionnaireActivity extends AppCompatActivity {
         if (cbTurkey.isChecked()) cuisineBuilder.append("Turkish");
         if (cbGreece.isChecked()) cuisineBuilder.append("Greek");
 
+        if (!otherKitchenTextTranslate.isEmpty()) {
+            cuisineBuilder.append(otherKitchenTextTranslate).append(",");
+        }
         // Убираем последнюю запятую
         String cuisine = "";
         if (cuisineBuilder.length() > 0) {
@@ -460,11 +474,11 @@ public class QuestionnaireActivity extends AppCompatActivity {
             editor.putString("userSkillLevel", User.skillLevel);
             editor.apply();
 
-            /*SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+            SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
             SharedPreferences.Editor editor = prefs.edit();
 
             editor.putBoolean(KEY_QUESTIONNAIRE, true);
-            editor.apply();*/
+            editor.apply();
 
             db.getRecommendedRecipe(this, new RecommendedCallback() {
                 @Override
@@ -657,4 +671,12 @@ public class QuestionnaireActivity extends AppCompatActivity {
                 hasCuisineSelected && hasOtherCuisineFilled && hasSkillLevelSelected;
     }
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        SharedPreferences prefs = newBase.getSharedPreferences("MODE", Context.MODE_PRIVATE);
+        boolean russian = prefs.getBoolean("language", true);
+        String langCode = russian ? "ru" : "en";
+        Context context = LocaleHelper.setLocale(newBase, langCode);
+        super.attachBaseContext(context);
+    }
 }

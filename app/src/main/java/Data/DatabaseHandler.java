@@ -37,6 +37,7 @@ import java.util.List;
 
 import Model.Event;
 import Model.Recipe;
+import Model.Tags;
 import Utils.Util;
 
 public class DatabaseHandler extends SQLiteAssetHelper {
@@ -607,6 +608,25 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         return result;
     }
 
+    public List<Tags> getRecipeTags(){
+        List<Tags> out = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = null;
+        try {
+            c = db.query(Util.TABLE_NAME_TAGS, new String[]{Util.KEY_RECIPE_ID, Util.KEY_KEY, Util.KEY_VALUE},
+                    null, null,
+                    null, null, null);
+            while (c != null && c.moveToNext()) {
+                String rid = c.getString(c.getColumnIndexOrThrow(Util.KEY_RECIPE_ID));
+                String key = c.getString(c.getColumnIndexOrThrow(Util.KEY_KEY));
+                String value = c.getString(c.getColumnIndexOrThrow(Util.KEY_VALUE));
+                out.add(new Tags(rid, key, value));
+            }
+        } finally {
+            if (c != null) c.close();
+        }
+        return out;
+    }
     // Получить аллергены пользователя
     public String getAllergiesForUser(String username) {
         SQLiteDatabase db = this.getReadableDatabase();

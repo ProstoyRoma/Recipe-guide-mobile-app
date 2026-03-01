@@ -44,7 +44,7 @@ public class SplashScreen extends AppCompatActivity {
     private static Translator enToRuTranslator, ruToEnTranslator;
     private static final String PREFS = "app_prefs";
     private static final String KEY_REORDER = "reorder_completed";
-    private static final String KEY_ONBOARDING = "onboarding_done";
+    private static final String KEY_ONBOARDING = "questionnaire_completed";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

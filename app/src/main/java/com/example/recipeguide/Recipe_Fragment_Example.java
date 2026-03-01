@@ -107,7 +107,6 @@ public class Recipe_Fragment_Example extends Fragment {
                 // немедленно блокируем кнопку
                 v.setEnabled(false);
                 v.setVisibility(View.GONE);
-                //v.setEnabled(false);
                 new Thread(() -> {
                     databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(),
                             User.username, "cook", id, System.currentTimeMillis());
@@ -122,9 +121,6 @@ public class Recipe_Fragment_Example extends Fragment {
                 }).start();
                 Toast.makeText(getActivity(), R.string.cooked_message, Toast.LENGTH_SHORT).show();
 
-                databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), User.username, "cook", id, System.currentTimeMillis());
-                updateCook(r);
-                //new Handler(Looper.getMainLooper()).postDelayed(() -> v.setEnabled(true), 10000);
             });
         } else {
             cookedButton.setVisibility(View.GONE);
