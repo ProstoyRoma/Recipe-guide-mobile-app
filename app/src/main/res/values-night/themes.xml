@@ -21,7 +21,12 @@
         <item name="buttonTrashcan">@drawable/button_trashcan_dark</item>
         <item name="buttonLike">@drawable/button_like_dark</item>
         <item name="buttonDislike">@drawable/button_dislike_dark</item>
+        <item name="buttonMore">@drawable/button_more_dark</item>
+        <item name="infoDialog">@drawable/info_dialog_dark</item>
         <item name="buttonStyle">@style/CustomButton</item>
+        <item name="checkboxStyle">@style/CustomCheckBox</item>
+        <item name="radioButtonStyle">@style/CustomRadioButton</item>
+
         <item name="colorDivider">@color/white</item>
         <item name="android:spinnerDropDownItemStyle">@style/MySpinnerDropDownItemStyle</item>
         <item name="spinnerDropDownItemStyle">@style/MySpinnerDropDownItemStyle</item>
@@ -78,6 +83,7 @@
         <!-- Уменьшаем отступы -->
         <item name="android:padding">7dp</item>
         <item name="android:minHeight">0dp</item>
+        <item name="android:textSize">16sp</item>
 
         <!-- Можно задать другие общие свойства -->
     </style>
@@ -85,6 +91,8 @@
         <!-- Уменьшаем отступы -->
         <item name="android:padding">7dp</item>
         <item name="android:minHeight">0dp</item>
+        <item name="android:textSize">16sp</item>
+
         <!-- Можно задать другие общие свойства -->
     </style>
 

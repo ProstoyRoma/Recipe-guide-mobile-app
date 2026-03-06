@@ -45,13 +45,13 @@ public class FavouritesScreen extends AppCompatActivity {
             return insets;
         });
 
-        baseAdActivity = new BaseAdActivity(
+        /*baseAdActivity = new BaseAdActivity(
                 this,
                 R.id.main,
                 R.id.ad_container_view,
                 "demo-banner-yandex"
         );
-        baseAdActivity.load();
+        baseAdActivity.load();*/
 
         listView = findViewById(R.id.listView);
 

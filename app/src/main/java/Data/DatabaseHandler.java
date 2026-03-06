@@ -115,15 +115,20 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         contentValues.put(Util.KEY_CATEGORY, recipe.getCategory());
         contentValues.put(Util.KEY_ISFAVORITE, recipe.getIsFavorite());
         contentValues.put(Util.KEY_ISCOOKED, recipe.getIsCook());
+        if(recipe.getIngredient_parsed() != null){
+            contentValues.put(Util.KEY_INGREDIENT_PARSED, recipe.getIngredient_parsed());
+        }
+        if(recipe.getVectors() != null){
+            contentValues.put(Util.KEY_VECTOR, recipe.getVectors());
+        }
 
         db.insert(Util.TABLE_NAME, null, contentValues);
         db.close();
     }
 
-    public void insertEvent(String eventId, String userId, String eventType, String recipeId, long tsLocal) {
+    public void insertEvent(String eventId, String eventType, String recipeId, long tsLocal) {
         ContentValues cv = new ContentValues();
         cv.put(Util.KEY_EVENT_ID, eventId);
-        cv.put(Util.KEY_USER_ID, userId);
         cv.put(Util.KEY_EVENT_TYPE, eventType);
         cv.put(Util.KEY_RECIPE_ID, recipeId);
         cv.put(Util.KEY_TS_LOCAL, tsLocal);
@@ -131,21 +136,20 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         db.insertWithOnConflict(Util.TABLE_NAME_EVENT, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
     }
 
-    public List<Event> getRecentEvents(String userId, long sinceTs) {
+    public List<Event> getRecentEvents(long sinceTs) {
         List<Event> out = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = null;
         try {
-            c = db.query(Util.TABLE_NAME_EVENT, new String[]{Util.KEY_EVENT_ID, Util.KEY_USER_ID, Util.KEY_EVENT_TYPE, Util.KEY_RECIPE_ID, Util.KEY_TS_LOCAL},
-                    "userId = ? AND tsLocal >= ?", new String[]{userId, String.valueOf(sinceTs)},
+            c = db.query(Util.TABLE_NAME_EVENT, new String[]{Util.KEY_EVENT_ID, Util.KEY_EVENT_TYPE, Util.KEY_RECIPE_ID, Util.KEY_TS_LOCAL},
+                    "tsLocal >= ?", new String[]{String.valueOf(sinceTs)},
                     null, null, "tsLocal DESC");
             while (c != null && c.moveToNext()) {
                 String eid = c.getString(c.getColumnIndexOrThrow(Util.KEY_EVENT_ID));
-                String uid = c.getString(c.getColumnIndexOrThrow(Util.KEY_USER_ID));
                 String et = c.getString(c.getColumnIndexOrThrow(Util.KEY_EVENT_TYPE));
                 String rid = c.getString(c.getColumnIndexOrThrow(Util.KEY_RECIPE_ID));
                 long ts = c.getLong(c.getColumnIndexOrThrow(Util.KEY_TS_LOCAL));
-                out.add(new Event(eid, uid, et, rid, ts));
+                out.add(new Event(eid, et, rid, ts));
             }
         } finally {
             if (c != null) c.close();
@@ -311,7 +315,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
                 //Log.d("MyLog", "DailyRecommendWorker doWork start: " + System.currentTimeMillis());
                 try {
                     RecommendationManager manager = new RecommendationManager(context);
-                    List<String> top3 = manager.generateTop3ForUser(userId);
+                    List<String> top3 = manager.generateTop3ForUser();
 
                     // save to DB as JSON array (DatabaseHandler должен реализовать insertRecommendation)
                     JSONArray arr = new JSONArray();
@@ -520,6 +524,15 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         return dishList;
     }
     //Обновляет конкретный рецепт
+    public void updateIsCookRecipe(String rId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(Util.KEY_ISCOOKED, 1);
+
+        db.update(Util.TABLE_NAME, contentValues, Util.KEY_ID + "=?", new String[]{String.valueOf(rId)});
+    }
+
     public int updateRecipe(Recipe recipe) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -533,6 +546,16 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         contentValues.put(Util.KEY_ISCOOKED, recipe.getIsCook());
 
         return db.update(Util.TABLE_NAME, contentValues, Util.KEY_ID + "=?", new String[]{String.valueOf(recipe.getId())});
+    }
+
+    public void addVectorToRecipe(String rId, String ingrParsed, String vector) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(Util.KEY_INGREDIENT_PARSED, ingrParsed);
+        contentValues.put(Util.KEY_VECTOR, vector);
+
+        db.update(Util.TABLE_NAME, contentValues, Util.KEY_ID + "=?", new String[]{String.valueOf(rId)});
     }
 
     //Удаляет конкретный рецепт
@@ -626,6 +649,15 @@ public class DatabaseHandler extends SQLiteAssetHelper {
             if (c != null) c.close();
         }
         return out;
+    }
+
+    public void insertTags(Tags tag){
+        ContentValues cv = new ContentValues();
+        cv.put(Util.KEY_RECIPE_ID, tag.getRecipeId());
+        cv.put(Util.KEY_KEY, tag.getKey());
+        cv.put(Util.KEY_VALUE, tag.getValue());
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.insertWithOnConflict(Util.TABLE_NAME_TAGS, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
     }
     // Получить аллергены пользователя
     public String getAllergiesForUser(String username) {

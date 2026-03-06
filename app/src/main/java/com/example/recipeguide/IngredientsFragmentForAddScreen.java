@@ -58,9 +58,7 @@ public class IngredientsFragmentForAddScreen extends Fragment {
         View view = inflater.inflate(R.layout.fragment_ingredients_input, parent, false);
 
         container = view.findViewById(R.id.ingredients_container);
-        addRowBtn = view.findViewById(R.id.btn_add_row);
 
-        addRowBtn.setOnClickListener(v -> addIngredientRow());
         addIngredientRow();
 
         // Если есть сохранённое состояние — восстановим
@@ -118,7 +116,7 @@ public class IngredientsFragmentForAddScreen extends Fragment {
         return rows;
     }
 
-    private void addIngredientRow() {
+    public void addIngredientRow() {
         View row = getLayoutInflater().inflate(
                 R.layout.item_ingredient_row, container, false
         );

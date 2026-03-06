@@ -15,7 +15,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
+
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:contentDescription="sxroll_view"
@@ -55,19 +57,29 @@
 
             <EditText
                 android:id="@+id/recipe_name"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
                 android:layout_marginTop="5dp"
                 style="@style/DarkerColor.CustomEditText"
                 android:textAlignment="center"
-                android:layout_marginEnd="50dp"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:maxLines="2"
                 android:layout_toEndOf="@+id/button_back_arrow"
+                android:layout_toStartOf="@+id/button_more"
                 android:hint="@string/input_name"
                 android:padding="4dp"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <ImageButton
+                android:id="@+id/button_more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#00FFFFFF"
+                android:padding="7dp"
+                android:layout_alignParentEnd="true"
+                android:contentDescription="@string/app_name"
+                app:srcCompat="?attr/buttonMore"
                 tools:ignore="TouchTargetSizeCheck" />
 
 
@@ -210,6 +222,22 @@
 
     </FrameLayout>
 
+    <Button
+        android:id="@+id/btn_add_row"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:background="@drawable/rounded_button_empty"
+        android:drawableStart="@drawable/ic_add"
+        android:drawablePadding="4dp"
+        android:gravity="start"
+        android:layout_margin="15dp"
+        android:paddingHorizontal="15dp"
+        android:paddingVertical="7dp"
+        android:text="@string/ingredient"
+        android:textColorLink="#FBDAAC"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/panel"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button_save"

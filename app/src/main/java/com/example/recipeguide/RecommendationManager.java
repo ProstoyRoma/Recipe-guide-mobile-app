@@ -15,8 +15,8 @@ import Utils.VectorUtils;
 public class RecommendationManager {
     private final DatabaseHandler db;
     private static final Map<String, Float> WEIGHTS;
-    private static final float COSINE_WEIGHT = 0.7f;    // 70% - косинусное сходство
-    private static final float TAGS_WEIGHT = 0.3f;      // 30% - теги
+    private static final float COSINE_WEIGHT = 0.65f;    // 65% - косинусное сходство
+    private static final float TAGS_WEIGHT = 0.35f;      // 35% - теги
 
     // Веса внутри тегов (нормализованы, сумма = 1.0)
     private static final float DIET_WEIGHT = 0.45f;
@@ -41,8 +41,8 @@ public class RecommendationManager {
     public float calculateFinalScore(float cosineScore,
                                      Recipe r, List<Tags> tags, List<Integer> userCategories) {
 
-        // 1. Косинусное сходство (уже в диапазоне -1..1, нормализуем до 0..1 если нужно)
-        float normalizedCosine = (cosineScore + 1) / 2; // преобразуем -1..1 -> 0..1
+        // 1. Косинусное сходство
+        float normalizedCosine = (cosineScore + 1) / 2;
 
         // 2. Считаем совпадения по тегам
         float tagScore = getRecipeTags(r, tags, userCategories);
@@ -119,7 +119,7 @@ public class RecommendationManager {
         //2. Диета
         if(User.diet != null && !User.diet.isEmpty()){
             for (Tags tag : tagsForRecipe) {
-                if ("diet".equals(tag.getKey()) && User.diet.equals(tag.getValue())) {
+                if ("diet".equals(tag.getKey()) && User.diet.equalsIgnoreCase(tag.getValue())) {
                     boost += DIET_WEIGHT;
                 }
             }
@@ -128,7 +128,7 @@ public class RecommendationManager {
         //3.Любимая кухня
         if(User.likeCuisine != null && !User.likeCuisine.isEmpty()){
             for (Tags tag : tagsForRecipe) {
-                if ("cuisine".equals(tag.getKey()) && User.likeCuisine.equals(tag.getValue())) {
+                if ("cuisine".equals(tag.getKey()) && User.likeCuisine.equalsIgnoreCase(tag.getValue())) {
                     boost += CUISINE_WEIGHT;
                 }
             }
@@ -159,9 +159,9 @@ public class RecommendationManager {
     }
 
     // lastDays: сколько дней истории учитываем
-    public float[] buildUserVector(String userId, int lastDays) {
+    public float[] buildUserVector(int lastDays) {
         long sinceTs = System.currentTimeMillis() - (long) lastDays * 24 * 3600 * 1000;
-        List<Event> events = db.getRecentEvents(userId, sinceTs);
+        List<Event> events = db.getRecentEvents(sinceTs);
         if (events == null || events.isEmpty()) return null;
 
         float[] sumVec = null;
@@ -278,8 +278,8 @@ public class RecommendationManager {
     }
 
     // полная операция: строим user vector и возвращаем top3
-    public List<String> generateTop3ForUser(String userId) {
-        float[] userVec = buildUserVector(userId, 90);
+    public List<String> generateTop3ForUser() {
+        float[] userVec = buildUserVector(90);
         if (userVec == null) {
             // fallback: первые три рецепта
             List<Recipe> all = db.getAllRecipesWithVectors();

@@ -136,7 +136,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         allergyCheckBoxes.add(cbNoAllergy); // Добавляем "Нет аллергий"
 
         dietRadioGroup = findViewById(R.id.diet_radio_group);
-        skillLevelRadioGroup = findViewById(R.id.diet_radio_group);
+        skillLevelRadioGroup = findViewById(R.id.skill_level_radio_group);
 
         cbItaly = findViewById(R.id.cb_italy);
         cbJapan = findViewById(R.id.cb_japan);
@@ -383,8 +383,8 @@ public class QuestionnaireActivity extends AppCompatActivity {
         if (cbFrance.isChecked()) cuisineBuilder.append("French,");
         if (cbMexico.isChecked()) cuisineBuilder.append("Mexican,");
         if (cbSpain.isChecked()) cuisineBuilder.append("Spanish,");
-        if (cbTurkey.isChecked()) cuisineBuilder.append("Turkish");
-        if (cbGreece.isChecked()) cuisineBuilder.append("Greek");
+        if (cbTurkey.isChecked()) cuisineBuilder.append("Turkish,");
+        if (cbGreece.isChecked()) cuisineBuilder.append("Greek,");
 
         if (!otherKitchenTextTranslate.isEmpty()) {
             cuisineBuilder.append(otherKitchenTextTranslate).append(",");

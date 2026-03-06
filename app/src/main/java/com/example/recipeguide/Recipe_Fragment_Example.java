@@ -109,7 +109,7 @@ public class Recipe_Fragment_Example extends Fragment {
                 v.setVisibility(View.GONE);
                 new Thread(() -> {
                     databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(),
-                            User.username, "cook", id, System.currentTimeMillis());
+                             "cook", id, System.currentTimeMillis());
 
                     // обновляем состояние рецепта в БД (если у вас есть метод)
                     updateCook(r); // если updateCook делает DB-операции — убедитесь, что он безопасен в фоне

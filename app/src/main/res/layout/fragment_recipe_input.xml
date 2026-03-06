@@ -23,7 +23,7 @@
         android:layout_marginTop="60dp"
         android:layout_marginHorizontal="5dp"
         android:ems="10"
-        android:backgroundTint="@color/black"
+        android:backgroundTint="?attr/editTextTint"
         android:hint="@string/hint_recipe"
         android:inputType="textMultiLine|textCapSentences"
         tools:ignore="TouchTargetSizeCheck" />

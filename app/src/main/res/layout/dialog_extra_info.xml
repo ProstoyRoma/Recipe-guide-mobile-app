@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/rounded_dialog_window"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:theme="@style/AppTheme.MaterialChipTheme">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="8dp"
+        android:text="@string/additional_info_add_screen"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/category_hint"
+        style="@style/DarkerColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="5dp"
+        android:text="@string/title_hint_additional_info"
+        android:textSize="15sp"
+        android:textStyle="italic" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <!-- Заголовок -->
+
+            <!-- Кухня -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="10dp"
+                android:paddingBottom="10dp"
+                android:text="@string/question_cuisine_add_screen"
+                android:textStyle="bold" />
+
+
+            <RadioGroup
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/like_kitchen"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="6dp">
+
+                    <RadioButton
+                        android:id="@+id/rb_italy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cb_italy"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toTopOf="@+id/like_kitchen"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_japan"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="200dp"
+                        android:text="@string/cb_japan"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toTopOf="@+id/like_kitchen"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_china"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cb_china"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_italy"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_russia"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="200dp"
+                        android:text="@string/cb_russia"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_italy"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_thailand"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cb_thailand"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_china"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_france"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="200dp"
+                        android:text="@string/cb_france"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_china"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+
+                    <RadioButton
+                        android:id="@+id/rb_mexico"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cb_mexico"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_thailand"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_spain"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="200dp"
+                        android:text="@string/cb_spain"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_thailand"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_turkey"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/cb_turkey"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_mexico"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_greece"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="200dp"
+                        android:text="@string/cb_greece"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_mexico"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <RadioButton
+                        android:id="@+id/rb_other_kitchen"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/rb_other"
+                        app:layout_constraintStart_toStartOf="@+id/like_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_turkey"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+                    <EditText
+                        android:id="@+id/et_other_kitchen"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="15dp"
+                        android:ems="12"
+                        android:hint="@string/enter_other"
+                        android:inputType="textCapSentences"
+                        android:minHeight="0dp"
+                        android:padding="7dp"
+                        android:visibility="gone"
+                        app:layout_constraintStart_toEndOf="@+id/rb_other_kitchen"
+                        app:layout_constraintTop_toBottomOf="@+id/rb_turkey"
+                        tools:ignore="TouchTargetSizeCheck" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </RadioGroup>
+
+            <!-- Диета -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:text="@string/question_diet_add_screen"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/diet_radio_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="6dp">
+
+                <CheckBox
+                    android:id="@+id/cb_mediterranean"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mediterranean"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_vegetarianism"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vegetarianism"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_veganism"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/veganism"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_low_carb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/low_carb"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_gluten_free"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/gluten_free"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_keto_diet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/keto_diet"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_dash_diet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dash_diet"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+                <CheckBox
+                    android:id="@+id/cb_paleo_diet"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/paleo_diet"
+                    tools:ignore="TouchTargetSizeCheck" />
+
+            </LinearLayout>
+
+
+            <!-- Основные ингредиенты -->
+            <!--
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Основные ингредиенты (1-3):"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_ingredient_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="Ингредиент 1 (например: курица)"
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:padding="10dp"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <EditText
+                android:id="@+id/et_ingredient_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="Ингредиент 2 (необязательно)"
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:padding="10dp"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <EditText
+                android:id="@+id/et_ingredient_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:hint="Ингредиент 3 (необязательно)"
+                android:inputType="textCapSentences"
+                android:maxLines="1"
+                android:padding="10dp"
+                tools:ignore="TouchTargetSizeCheck" />
+
+             -->
+        </LinearLayout>
+    </ScrollView>
+    <!-- Кнопки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="0dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_button_empty"
+            android:text="@string/cancel"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColorLink="#FBDAAC"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="20dp"
+            android:layout_height="match_parent">
+
+        </View>
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="0dp"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:text="@string/save_button"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColorLink="#FBDAAC"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+
+</LinearLayout>

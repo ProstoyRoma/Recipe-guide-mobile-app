@@ -25,6 +25,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.common.reflect.TypeToken;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -35,6 +36,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -178,7 +180,10 @@ public class LoginActivity extends AppCompatActivity {
                                     //myRef.child(user.getUid()).child("imageUrl").setValue(null);
                                     myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
 
-                                    if (User.allergy != null && User.likeCategory != null && User.diet != null && User.likeCuisine !=null && User.skillLevel != null) {
+
+                                    getMyCookFromSQLiteToFB(LoginActivity.this);
+
+                                    if (User.allergy != null && User.likeCategory != null && User.diet != null && User.likeCuisine != null && User.skillLevel != null) {
                                         myRef.child(user.getUid()).child("allergies").setValue(User.allergy);
                                         myRef.child(user.getUid()).child("diet").setValue(User.diet);
                                         myRef.child(user.getUid()).child("likeCategory").setValue(User.likeCategory);
@@ -194,6 +199,8 @@ public class LoginActivity extends AppCompatActivity {
                                     editor.putString("username", User.username);
                                     editor.putString("userImage", User.userImage);
                                     editor.apply();
+
+                                    saveMyRecipeToFB();
 
                                     Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
                                     startActivity(intent);
@@ -233,8 +240,17 @@ public class LoginActivity extends AppCompatActivity {
                                         String skillLevel = taskProfile.getResult().child("skillLevel").getValue(String.class);
                                         myRef.child(user.getUid()).child("date_time").setValue(String.valueOf(LocalDateTime.now()));
 
+                                        sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
+                                        editor = sharedPreferences.edit();
+                                        editor.putString("username", User.username);
+                                        editor.putString("userImage", User.userImage);
+                                        editor.apply();
+
+                                        getMyCookFromFBToSQLite(LoginActivity.this);
+                                        getMyCookFromSQLiteToFB(LoginActivity.this);
+
                                         if (allergies == null && likeCategory == null && diet == null && likeCuisine == null && skillLevel == null
-                                                && User.allergy != null && User.likeCategory != null && User.diet != null && User.likeCuisine !=null && User.skillLevel != null) {
+                                                && User.allergy != null && User.likeCategory != null && User.diet != null && User.likeCuisine != null && User.skillLevel != null) {
                                             AlertDialog.Builder builder = new AlertDialog.Builder(this);
                                             builder.setTitle(getString(R.string.synchronization_questionnaire));
                                             builder.setMessage(getString(R.string.synchronization_message));
@@ -244,28 +260,44 @@ public class LoginActivity extends AppCompatActivity {
                                                 myRef.child(user.getUid()).child("likeCategory").setValue(User.likeCategory);
                                                 myRef.child(user.getUid()).child("likeCuisine").setValue(User.likeCuisine);
                                                 myRef.child(user.getUid()).child("skillLevel").setValue(User.skillLevel);
+
+                                                getMyRecipe(LoginActivity.this, dishes -> {
+                                                    Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
+                                                    intent.putStringArrayListExtra("dish_list", dishes);
+                                                    startActivity(intent);
+                                                    finish();
+                                                });
                                                 dialog.dismiss();
                                             });
-                                            builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
+                                            builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> {
+                                                getMyRecipe(LoginActivity.this, dishes -> {
+                                                    Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
+                                                    intent.putStringArrayListExtra("dish_list", dishes);
+                                                    startActivity(intent);
+                                                    finish();
+                                                });
+                                                dialog.dismiss();
+                                            });
                                             AlertDialog dialog = builder.create();
                                             dialog.show();
-                                        }else if(allergies != null && likeCategory != null && diet != null && likeCuisine != null && skillLevel != null){
+                                        } else if (allergies != null && likeCategory != null && diet != null && likeCuisine != null && skillLevel != null) {
                                             User.updateFromQuestionnaire(allergies, diet, likeCuisine, likeCategory, skillLevel);
+                                            getMyRecipe(LoginActivity.this, dishes -> {
+                                                Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
+                                                intent.putStringArrayListExtra("dish_list", dishes);
+                                                startActivity(intent);
+                                                finish();
+                                            });
 
+                                        } else {
+                                            getMyRecipe(LoginActivity.this, dishes -> {
+                                                Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
+                                                intent.putStringArrayListExtra("dish_list", dishes);
+                                                startActivity(intent);
+                                                finish();
+                                            });
                                         }
 
-                                        sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
-                                        editor = sharedPreferences.edit();
-                                        editor.putString("username", User.username);
-                                        editor.putString("userImage", User.userImage);
-                                        editor.apply();
-
-                                        getMyRecipe(LoginActivity.this, dishes -> {
-                                            Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
-                                            intent.putStringArrayListExtra("dish_list", dishes);
-                                            startActivity(intent);
-                                            finish();
-                                        });
                                         Log.d("firebase", String.valueOf(taskProfile.getResult().getValue()));
                                     }
                                 });
@@ -282,6 +314,104 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    private void saveMyRecipeToFB(){
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            return;
+        }
+        SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
+        String dishJson = prefs.getString("dish_list", null);
+        if(dishJson == null){
+            return;
+        }
+
+        Gson gson = new Gson();
+        ArrayList<String> dishes = gson.fromJson(dishJson, new TypeToken<ArrayList<String>>(){}.getType());
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("my_recipes");
+
+        for(String dish: dishes){
+            myRef.child(dish).setValue(true);
+        }
+
+    }
+
+    private void getMyCookFromSQLiteToFB(Context context) {
+        DatabaseHandler dbHelper = new DatabaseHandler(context);
+
+        ArrayList<Recipe> cookRecipe = dbHelper.getCookRecipe();
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+
+            return;
+        }
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("isCook");
+
+        for (Recipe r : cookRecipe) {
+            myRef.child(r.getId()).setValue(true);
+        }
+    }
+
+    private void getMyCookFromFBToSQLite(Context context) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+
+            return;
+        }
+
+        DatabaseHandler dbHelper = new DatabaseHandler(context);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("isCook");
+
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                try {
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        String recipeId = child.getKey();
+                        if (recipeId == null) continue;
+                        if (!dbHelper.myRecipeInSQLite(recipeId)) {
+                            Recipe recipe = new Recipe();
+                            recipe.setId(recipeId);
+                            recipe.setName(child.child("name").getValue(String.class));
+                            recipe.setName_en(child.child("name_en").getValue(String.class));
+                            recipe.setImage(child.child("image").getValue(String.class));
+                            recipe.setCookingTime(child.child("cookingTime").getValue(Integer.class));
+                            recipe.setCategory(child.child("category").getValue(Integer.class));
+                            recipe.setIngredient(child.child("ingredient").getValue(String.class));
+                            recipe.setIngredient_en(child.child("ingredient_en").getValue(String.class));
+                            recipe.setRecipe(child.child("recipe").getValue(String.class));
+                            recipe.setRecipe_en(child.child("recipe_en").getValue(String.class));
+                            recipe.setIngredient_parsed(child.child("ingredients_parsed").getValue(String.class));
+                            String ingVec = child.child("ingredient_vectors").getValue(String.class);
+                            recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
+                            recipe.setIsFavorite(1);
+                            recipe.setIsCook(1);
+
+                            dbHelper.insertOrUpdateRecipe(recipe); // ✅ Сохраняем в SQLite
+                        } else {
+                            dbHelper.updateIsCookRecipe(recipeId);
+
+                        }
+                    }
+
+                } catch (Exception e) {
+
+                    Log.e("Firebase", getString(R.string.error_loaded));
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
 
     private void getMyRecipe(Context context, RecipeCallback callback) {
         /*FirebaseUser user = mAuth.getCurrentUser();
@@ -376,7 +506,11 @@ public class LoginActivity extends AppCompatActivity {
                             recipe.setIngredient_en(child.child("ingredient_en").getValue(String.class));
                             recipe.setRecipe(child.child("recipe").getValue(String.class));
                             recipe.setRecipe_en(child.child("recipe_en").getValue(String.class));
+                            recipe.setIngredient_parsed(child.child("ingredients_parsed").getValue(String.class));
+                            String ingVec = child.child("ingredient_vectors").getValue(String.class);
+                            recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
                             recipe.setIsFavorite(1);
+                            recipe.setIsCook(0);
 
                             dbHelper.insertOrUpdateRecipe(recipe); // ✅ Сохраняем в SQLite
                         }
@@ -452,22 +586,6 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void showSaveQuestionnaire(String allergies, String likeCategory) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Синхронизация анкеты");
-        builder.setMessage("Хотите сохранить данные об аллергенах и любимых категориях в ваш аккаунт?");
-        builder.setPositiveButton(getString(R.string.confirm), (dialog, which) -> {
-            sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
-            editor = sharedPreferences.edit();
-            editor.putString("username", User.username);
-            editor.putString("userImage", User.userImage);
-            editor.apply();
-            dialog.dismiss();
-        });
-        builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.dismiss());
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
 
     public void goBack(View view) {
         finish();

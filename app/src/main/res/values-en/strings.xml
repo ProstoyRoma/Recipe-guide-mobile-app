@@ -119,6 +119,7 @@
     <string name="cb_turkey">Turkish</string>
     <string name="cb_greece">Greek</string>
     <string name="cb_other">Other:</string>
+    <string name="rb_other">Other:</string>
     <string name="enter_other">Enter here</string>
     <string name="choose_like_kitchen">Choose your favorite cuisines</string>
     <string name="no_diet">I don\'t follow a specific diet.</string>
@@ -150,11 +151,17 @@
     <string name="error_ET_allergy">Please indicate which product you would like to exclude</string>
     <string name="error_ET_cuisine">Please indicate your favorite cuisine.</string>
     <string name="synchronization_questionnaire">Synchronization of the questionnaire</string>
-    <string name="synchronization_message">Want to save allergen and favorite category data to your account?</string>
+    <string name="synchronization_message">Would you like to save your questionnaire data (allergens, diet, etc.) to your account?</string>
     <string name="beginner">Beginner</string>
     <string name="intermediate">Intermediate</string>
     <string name="expert">Expert</string>
     <string name="skill_level">Choose your culinary skill level</string>
+    <string name="error_hint_other_cuisine">Indicate cuisine</string>
+    <string name="question_cuisine_add_screen">Please select which cuisine your dish belongs to:</string>
+    <string name="additional_info_add_screen">Additional information</string>
+    <string name="title_hint_additional_info">(optional)</string>
+    <string name="question_diet_add_screen">Please indicate whether the dish meets dietary requirements:</string>
+    <string name="info_dialog">Please provide additional information to help us recommend your recipe</string>
 
     <string-array name="categories_array">
         <item>Select</item>

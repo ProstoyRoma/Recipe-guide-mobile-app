@@ -3,6 +3,7 @@
     android:id="@+id/scroll_ingredients"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:contentDescription="add_ingredient_fragment"
     android:fillViewport="true">
 
     <!-- Единственный прямой потомок ScrollView -->
@@ -22,17 +23,6 @@
             android:paddingVertical="7dp"
             android:layout_marginStart="5dp"/>
 
-        <!-- Кнопка добавления новой строки -->
-        <Button
-            android:id="@+id/btn_add_row"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:paddingVertical="7dp"
-            android:paddingHorizontal="15dp"
-            android:layout_gravity="center"
-            android:textStyle="bold"
-            android:text="@string/add_ingredient" />
 
     </LinearLayout>
 </ScrollView>

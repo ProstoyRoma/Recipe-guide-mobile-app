@@ -45,13 +45,13 @@ public class SearchActivity extends AppCompatActivity {
             return insets;
         });
 
-        baseAdActivity = new BaseAdActivity(
+        /*baseAdActivity = new BaseAdActivity(
                 this,
                 R.id.main,
                 R.id.ad_container_view,
                 "demo-banner-yandex"
         );
-        baseAdActivity.load();
+        baseAdActivity.load();*/
 
         listView = findViewById(R.id.listView);
         searchView = findViewById(R.id.search_field);
@@ -71,9 +71,9 @@ public class SearchActivity extends AppCompatActivity {
                 if (lastQuery != null && lastQuery.trim().length() >= 3) {
                     // пример: insertEvent(String userId, String recipeId, String query)
                     // замените параметры на те, что нужны вашей реализации
-                    databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),User.username,"search", selectedDish.getId(), System.currentTimeMillis());
+                    databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),"search", selectedDish.getId(), System.currentTimeMillis());
                 }else{
-                    databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),User.username,"view",selectedDish.getId(),System.currentTimeMillis());
+                    databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),"view",selectedDish.getId(),System.currentTimeMillis());
 
                 }
                 // Создаём Intent и передаём ID блюда

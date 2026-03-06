@@ -51,6 +51,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,6 @@ public class ActivityProfile extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference myRef;
     Uri imageUri;
-    SharedPreferences sharedPreferences;
     SharedPreferences prefs ;
     SharedPreferences.Editor editor;
     BaseAdActivity baseAdActivity;
@@ -91,22 +91,22 @@ public class ActivityProfile extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_profile);
-        baseAdActivity = new BaseAdActivity(
+        /*baseAdActivity = new BaseAdActivity(
                 this,
                 R.id.main,
                 R.id.ad_container_view,
                 "demo-banner-yandex"
         );
-        baseAdActivity.load();
+        baseAdActivity.load();*/
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        DatabaseHandler databaseHandler = new DatabaseHandler(this);
 
         prefs = getSharedPreferences("MODE", Context.MODE_PRIVATE);
-        //sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
         editor = prefs.edit();
 
         mAuth = FirebaseAuth.getInstance();
@@ -131,33 +131,7 @@ public class ActivityProfile extends AppCompatActivity {
         }
 
 
-        ArrayList<String> cookDish = getCookRecipe();
-
-        if(cookDish != null){
-
-            DatabaseHandler databaseHandler = new DatabaseHandler(this);
-            for(String dish: cookDish){
-                databaseHandler.updateRecipe(databaseHandler.getRecipe(dish));
-            }
-            cookList = databaseHandler.getCookRecipe();
-
-            /*adapter = new DishAdapter(this, dishList); // Создаём адаптер
-
-            user_recipes_list.setAdapter(adapter); // Устанавливаем адаптер
-
-            user_recipes_list.setOnItemClickListener((parent, view, position, id) -> {
-                // Получаем выбранное блюдо
-                Recipe selectedDish = adapter.getItem(position);
-
-                if (selectedDish != null) {
-                    // Создаём Intent и передаём ID блюда
-                    Intent intent = new Intent(getApplicationContext(), recipe_example_activity.class);
-                    intent.putExtra("dish_id", selectedDish.getId()); // Передаём ID блюда
-                    startActivity(intent);
-                }
-            });*/
-        }
-
+        cookList = databaseHandler.getCookRecipe();
 
 
         String dishJson = prefs.getString("dish_list", null);
@@ -186,25 +160,9 @@ public class ActivityProfile extends AppCompatActivity {
 
         if(dishes != null){
 
-            DatabaseHandler databaseHandler = new DatabaseHandler(this);
             for(String dish: dishes){
                 dishList.add(databaseHandler.getRecipe(dish));
             }
-            /*adapter = new DishAdapter(this, dishList); // Создаём адаптер
-
-            user_recipes_list.setAdapter(adapter); // Устанавливаем адаптер
-
-            user_recipes_list.setOnItemClickListener((parent, view, position, id) -> {
-                // Получаем выбранное блюдо
-                Recipe selectedDish = adapter.getItem(position);
-
-                if (selectedDish != null) {
-                    // Создаём Intent и передаём ID блюда
-                    Intent intent = new Intent(getApplicationContext(), recipe_example_activity.class);
-                    intent.putExtra("dish_id", selectedDish.getId()); // Передаём ID блюда
-                    startActivity(intent);
-                }
-            });*/
         }
 
         logout_button = findViewById(R.id.logout_button);
@@ -339,71 +297,6 @@ public class ActivityProfile extends AppCompatActivity {
             });
             widthAnimator.start();
         }
-    }
-    private ArrayList<String> getCookRecipe() {
-        FirebaseUser user = mAuth.getCurrentUser();
-
-        DatabaseHandler dbHelper = new DatabaseHandler(this);
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("isCook");
-
-        ArrayList<String> cookList = new ArrayList<>();
-
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                try {
-                    for (DataSnapshot child : snapshot.getChildren()) {
-                        String recipeId = child.getKey();
-                        if (recipeId == null) continue;
-
-                        // 🔥 Проверяем, есть ли рецепт в SQLite
-                        if (!dbHelper.myRecipeInSQLite(recipeId)) {
-                            Recipe recipe = new Recipe();
-                            recipe.setId(recipeId);
-                            recipe.setName(child.child("name").getValue(String.class));
-                            recipe.setName_en(child.child("name_en").getValue(String.class));
-                            recipe.setImage(child.child("image").getValue(String.class));
-                            recipe.setCookingTime(child.child("cookingTime").getValue(Integer.class));
-                            recipe.setIngredient(child.child("ingredient").getValue(String.class));
-                            recipe.setIngredient_en(child.child("ingredient_en").getValue(String.class));
-                            recipe.setRecipe(child.child("recipe").getValue(String.class));
-                            recipe.setRecipe_en(child.child("recipe_en").getValue(String.class));
-                            recipe.setIsFavorite(1);
-
-                            dbHelper.insertOrUpdateRecipe(recipe); // ✅ Сохраняем в SQLite
-                        }
-                        // Если значение узла boolean true или строка "true" — считаем, что рецепт есть в списке
-                        Object val = child.getValue();
-                        boolean enabled = false;
-                        if (val instanceof Boolean) {
-                            enabled = (Boolean) val;
-                        } else if (val instanceof String) {
-                            enabled = Boolean.parseBoolean((String) val);
-                        } else if (val instanceof Long) {
-                            enabled = ((Long) val) != 0L;
-                        }
-
-                        if (enabled) {
-                            cookList.add(recipeId);
-                        }
-                    }
-
-                } catch (Exception e) {
-
-                    Log.e("Firebase", getString(R.string.error_loaded) );
-
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Firebase", getString(R.string.error_loaded) + error.getMessage());
-
-            }
-        });
-        return cookList;
     }
 
     private int dpToPx(int dp) {

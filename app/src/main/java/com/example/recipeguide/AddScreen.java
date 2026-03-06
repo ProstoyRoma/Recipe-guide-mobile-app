@@ -13,6 +13,7 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.Uri;
@@ -31,12 +32,15 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -89,6 +93,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import Data.DatabaseHandler;
 import Model.Recipe;
+import Model.Tags;
 import Utils.FileUtils;
 
 
@@ -122,6 +127,18 @@ public class AddScreen extends AppCompatActivity {
     final String[] translated = new String[6];
     BaseAdActivity baseAdActivity;
 
+    private Button btnAddRow;
+    private ImageButton btnExtraInfo;
+    private TextView tvExtraInfoStatus;
+
+    // Переменные для хранения данных из диалога
+    private String selectedCuisine = "";
+    private List<String> selectedDiet = new ArrayList<>();
+    //private List<String> mainIngredients = new ArrayList<>();
+    private PopupWindow tooltipPopup;
+    private static final String KEY_TOOLTIP_SHOWN = "tooltip_shown";
+
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,26 +152,14 @@ public class AddScreen extends AppCompatActivity {
             return insets;
         });
 
-        baseAdActivity = new BaseAdActivity(
+        /*baseAdActivity = new BaseAdActivity(
                 this,
                 R.id.addScreen,
                 R.id.ad_container_view,
                 "demo-banner-yandex"
         );
-        baseAdActivity.load();
+        baseAdActivity.load();*/
 
-        /*List<String> categories = new ArrayList<>();
-        categories.add("Выбрать");             // хинт
-        categories.add("Закуски");
-        categories.add("Суп");
-        categories.add("Салат");
-        categories.add("Основное блюдо");
-        categories.add("Гарнир");
-        categories.add("Десерты");
-        categories.add("Напиток");
-        categories.add("Соусы и приправы");
-        categories.add("Выпечка");
-        categories.add("Перекус");*/
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 this,
                 R.layout.spinner_item,
@@ -234,6 +239,8 @@ public class AddScreen extends AppCompatActivity {
         recipeNameEditText.post(() -> scrollingText(recipeNameEditText));
 
         Button buttonSave = findViewById(R.id.button_save);
+        btnAddRow = findViewById(R.id.btn_add_row);
+        btnAddRow.setOnClickListener(v -> ingredientFragment.addIngredientRow());
 
         Button ingredientButton = findViewById(R.id.ingredient);
         Button recipeButton = findViewById(R.id.recipe);
@@ -247,17 +254,97 @@ public class AddScreen extends AppCompatActivity {
             ingredientButton.setBackgroundResource(R.drawable.rounded_button_focused);
             recipeButton.setBackgroundResource(R.drawable.rounded_button_default);
             setNewFragment(ingredientFragment, "ingredients_fragment", true);
+            btnAddRow.setVisibility(View.VISIBLE);
         });
 
         recipeButton.setOnClickListener(v -> {
             recipeButton.setBackgroundResource(R.drawable.rounded_button_focused);
             ingredientButton.setBackgroundResource(R.drawable.rounded_button_default);
             setNewFragment(recipeFragment, "recipe_fragment", true);
+            btnAddRow.setVisibility(View.INVISIBLE);
+
         });
 
         buttonSave.setOnClickListener(v -> saveImageToInternalStorage(databaseHelper));
 
+
+
+        btnExtraInfo = findViewById(R.id.button_more);
+        //btnExtraInfo.setOnClickListener(v -> openExtraInfoDialog());
+
+        // Проверяем, показывали ли уже подсказку
+        boolean isTooltipShown = sharedPreferences.getBoolean(KEY_TOOLTIP_SHOWN, false);
+
+        if (!isTooltipShown) {
+            // Показываем подсказку через 500мс после загрузки страницы
+            btnExtraInfo.postDelayed(() -> showTooltip(), 500);
+        }
+
+        // Обычный клик на кнопку (открытие диалога)
+        btnExtraInfo.setOnClickListener(v -> {
+            // Закрываем подсказку, если она открыта
+            if (tooltipPopup != null && tooltipPopup.isShowing()) {
+                tooltipPopup.dismiss();
+            }
+
+            // Открываем ваш диалог с доп информацией
+            openExtraInfoDialog();
+        });
     }
+
+    private void showTooltip() {
+        // Инфлейтим layout для подсказки
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View tooltipView = inflater.inflate(R.layout.tooltip_layout, null);
+
+        TextView tooltipText = tooltipView.findViewById(R.id.tv_tooltip_text);
+        tooltipText.setMovementMethod(new ScrollingMovementMethod());
+        // Создаем PopupWindow
+        tooltipPopup = new PopupWindow(
+                tooltipView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true // Фокус (чтобы можно было нажать OK)
+        );
+
+        // Делаем фон прозрачным (используем наш drawable)
+        tooltipPopup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        // Показываем подсказку слева от кнопки button_more
+        tooltipPopup.showAsDropDown(btnExtraInfo, -250, 10, Gravity.END);
+
+        // Настраиваем кнопку OK
+        /*Button btnOk = tooltipView.findViewById(R.id.btn_tooltip_ok);
+        btnOk.setOnClickListener(v -> {
+            tooltipPopup.dismiss();
+            // Сохраняем, что подсказка была показана
+            sharedPreferences.edit().putBoolean(KEY_TOOLTIP_SHOWN, true).apply();
+        });*/
+
+        // Закрываем при клике вне области
+        tooltipPopup.setOnDismissListener(() -> {
+            sharedPreferences.edit().putBoolean(KEY_TOOLTIP_SHOWN, true).apply();
+        });
+    }
+    private void openExtraInfoDialog() {
+        ExtraInfoDialogFragment dialog = ExtraInfoDialogFragment.newInstance();
+
+        // Устанавливаем слушатель для получения данных
+        //dialog.setOnExtraInfoSavedListener((cuisine, diet, ingredients) -> {
+        dialog.setOnExtraInfoSavedListener((cuisine, diet) -> {
+            // Сохраняем данные
+            this.selectedCuisine = cuisine;
+            this.selectedDiet = diet;
+            //this.mainIngredients = ingredients;
+
+
+        });
+
+        // Показываем диалог
+        dialog.show(getSupportFragmentManager(), "ExtraInfoDialog");
+    }
+
+
 
 
     // Открытие галереи для выбора изображения
@@ -391,7 +478,7 @@ public class AddScreen extends AppCompatActivity {
                 String recipeId = UUID.randomUUID().toString();
                 if (validateImage()) {
                     saveData(databaseHandler, recipeId, translated);
-                    saveDataFirebaseAllRecipe(recipeId, translated);
+                    saveDataFirebaseAllRecipe(recipeId, translated, databaseHandler);
                     Toast.makeText(AddScreen.this, R.string.good_save, Toast.LENGTH_LONG).show();
 
                 } else {
@@ -677,12 +764,10 @@ public class AddScreen extends AppCompatActivity {
 
     }
 
-    private void saveDataFirebaseAllRecipe(String recipeId, String[] translated) {
+    private void saveDataFirebaseAllRecipe(String recipeId, String[] translated, DatabaseHandler databaseHandler) {
 
-        ExecutorService dataUploadExecutor = Executors.newSingleThreadExecutor();
         int preparationTime = Integer.parseInt(preparationTimeEditText.getText().toString().trim());
 
-        CountDownLatch latch = new CountDownLatch(1);
         FirebaseUser user = mAuth.getCurrentUser();
 
         mAuth = FirebaseAuth.getInstance();
@@ -801,6 +886,8 @@ public class AddScreen extends AppCompatActivity {
 
                             myRef.child(recipeId).child("ingredients_parsed").setValue(parsedString);
                             myRef.child(recipeId).child("ingredient_vectors").setValue(vectorJsonString);
+
+                            databaseHandler.addVectorToRecipe(recipeId, parsedString, vectorJsonString);
                         } catch (Exception e) {
                             e.printStackTrace();
                             Log.e("TFIDF", "Exception in executor: " + Log.getStackTraceString(e));
@@ -820,6 +907,18 @@ public class AddScreen extends AppCompatActivity {
                     myRef.child(recipeId).child("ingredient_en").setValue(translated[4]);
                     myRef.child(recipeId).child("category").setValue(spinner.getSelectedItemPosition() - 1);
 
+                    if(!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")){
+                        myRef.child(recipeId).child("meta").child("cuisine").setValue(selectedCuisine.trim());
+                        database.getReference("indices").child("by_cuisine").child(selectedCuisine.trim()).child(recipeId).setValue(true);
+
+                    }
+                    if(!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")){
+                        for(int i = 0; i < selectedDiet.size(); i++){
+                            myRef.child(recipeId).child("meta").child("diet").child(String.valueOf(i)).setValue(selectedDiet.get(i).trim());
+                            database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child(recipeId).setValue(true);
+
+                        }
+                    }
 
                     uploadProgressBar.setVisibility(View.GONE);
                     //latch.countDown();
@@ -950,12 +1049,7 @@ public class AddScreen extends AppCompatActivity {
 
         sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
 
-        String recipeName = recipeNameEditText.getText().toString().trim();
-        String ingredientsData = ingredientFragment != null ? ingredientFragment.getIngredientsData() : "";
-        String recipeData = recipeFragment != null ? recipeFragment.getRecipeData() : "";
         int preparationTime = Integer.parseInt(preparationTimeEditText.getText().toString().trim());
-
-        boolean isRussian = sharedPreferences.getBoolean("language", false);
 
         // Генерация имени файла
         photoFileName = getFilesDir() + "/saved_image_" + System.currentTimeMillis() + ".png";
@@ -987,7 +1081,6 @@ public class AddScreen extends AppCompatActivity {
                 translated[5] = translatedList.get(2);
             }*/
 
-        Recipe dish = new Recipe();
         ArrayList<String> dishes = new ArrayList<>();
 
         SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
@@ -1015,11 +1108,20 @@ public class AddScreen extends AppCompatActivity {
         editor.apply();
         Log.d("Translation", "Оригинал: " + translated[0]);
 
-        databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), User.username, "create", recipeId, System.currentTimeMillis());
+        databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), "create", recipeId, System.currentTimeMillis());
 //ДОБАВИТЬ КАТЕГОРИИ!!!
         Recipe recipe = new Recipe(recipeId, translated[0], translated[3], photoFileName, preparationTime, translated[2], translated[5], translated[1], translated[4], 1, 0, spinner.getSelectedItemPosition() - 1, null, null);
 
         databaseHandler.addRecipe(recipe);
+
+        if(!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")){
+            databaseHandler.insertTags(new Tags(recipeId, "cuisine", selectedCuisine.trim()));
+        }
+        if(!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")){
+            for(String diet: selectedDiet){
+                databaseHandler.insertTags(new Tags(recipeId, "diet", diet));
+            }
+        }
         //});
 /*
 

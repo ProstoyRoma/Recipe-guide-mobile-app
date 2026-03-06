@@ -60,13 +60,13 @@ public class OptionsScreen extends AppCompatActivity {
             return insets;
         });
 
-        baseAdActivity = new BaseAdActivity(
+        /*baseAdActivity = new BaseAdActivity(
                 this,
                 R.id.main,
                 R.id.ad_container_view,
                 "demo-banner-yandex"
         );
-        baseAdActivity.load();
+        baseAdActivity.load();*/
 
         notificationSwitch = findViewById(R.id.switch_notification);
         switcher = findViewById(R.id.switch_theme);

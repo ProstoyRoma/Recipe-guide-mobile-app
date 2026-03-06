@@ -22,11 +22,18 @@
         <item name="buttonTrashcan">@drawable/button_trashcan</item>
         <item name="buttonLike">@drawable/button_like</item>
         <item name="buttonDislike">@drawable/button_dislike</item>
+        <item name="buttonMore">@drawable/button_more</item>
+        <item name="infoDialog">@drawable/info_dialog</item>
         <item name="buttonStyle">@style/CustomButton</item>
+        <item name="checkboxStyle">@style/CustomCheckBox</item>
+        <item name="radioButtonStyle">@style/CustomRadioButton</item>
+
         <item name="colorDivider">@color/black</item>
         <item name="android:spinnerDropDownItemStyle">@style/MySpinnerDropDownItemStyle</item>
         <item name="spinnerDropDownItemStyle">@style/MySpinnerDropDownItemStyle</item>
         <item name="screenBackground">@color/white</item>
+
+
     </style>
 
     <style name="AppTheme.MaterialChipTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
@@ -79,6 +86,7 @@
         <!-- Уменьшаем отступы -->
         <item name="android:padding">7dp</item>
         <item name="android:minHeight">0dp</item>
+        <item name="android:textSize">16sp</item>
 
         <!-- Можно задать другие общие свойства -->
     </style>
@@ -86,6 +94,8 @@
         <!-- Уменьшаем отступы -->
         <item name="android:padding">7dp</item>
         <item name="android:minHeight">0dp</item>
+        <item name="android:textSize">16sp</item>
+
         <!-- Можно задать другие общие свойства -->
     </style>
 

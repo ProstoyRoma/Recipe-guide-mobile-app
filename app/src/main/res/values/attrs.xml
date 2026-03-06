@@ -16,4 +16,6 @@
     <attr name="screenBackground" format="reference|color"/>
     <attr name="buttonLike" format="reference"/>
     <attr name="buttonDislike" format="reference"/>
+    <attr name="buttonMore" format="reference"/>
+    <attr name="infoDialog" format="reference"/>
 </resources>

@@ -74,13 +74,13 @@ public class MainScreen extends AppCompatActivity {
 
         setContentView(R.layout.main_screen);
 
-        baseAdActivity = new BaseAdActivity(
+        /*baseAdActivity = new BaseAdActivity(
                 this,
                 R.id.main,
                 R.id.ad_container_view,
                 "demo-banner-yandex"
         );
-        baseAdActivity.load();
+        baseAdActivity.load();*/
 
         initConfig();
         isNightMode = OptionsScreen.getCurrentTheme(this);

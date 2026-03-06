@@ -241,7 +241,7 @@ public class ReorderActivity extends AppCompatActivity {
     public void toggleDone(View view) {
         DatabaseHandler databaseHandler = new DatabaseHandler(this);
         for (String r : liked) {
-            databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), User.username, "cook", r, System.currentTimeMillis());
+            databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), "cook", r, System.currentTimeMillis());
         }
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();

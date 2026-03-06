@@ -118,8 +118,9 @@
     <string name="cb_turkey">Турецкая</string>
     <string name="cb_greece">Греческая</string>
     <string name="cb_other">Другое:</string>
+    <string name="rb_other">Другая:</string>
     <string name="enter_other">Введите здесь</string>
-    <string name="choose_like_kitchen">Выберете любимые кухни</string>
+    <string name="choose_like_kitchen">Выберите любимые кухни</string>
     <string name="no_diet">Не придерживаюсь определенного питания</string>
     <string name="paleo_diet">Палео-диета</string>
     <string name="dash_diet">Диета DASH</string>
@@ -149,11 +150,17 @@
     <string name="error_ET_allergy">Пожалуйста, укажите какой продукт хотите исключить</string>
     <string name="error_ET_cuisine">Пожалуйста, укажите вашу любимую кухню</string>
     <string name="synchronization_questionnaire">Синхронизация анкеты</string>
-    <string name="synchronization_message">Хотите сохранить данные об аллергенах и любимых категориях в ваш аккаунт?</string>
+    <string name="synchronization_message">Хотите сохранить данные анкеты (аллергены, диета и т.д.) в ваш аккаунт?</string>
     <string name="beginner">Новичок</string>
     <string name="intermediate">Продвинутый</string>
     <string name="expert">Профессионал</string>
     <string name="skill_level">Выберите ваш уровень кулинарных навыков</string>
+    <string name="error_hint_other_cuisine">Введите кухню</string>
+    <string name="question_cuisine_add_screen">Выберите, к какой кухне относится ваше блюдо:</string>
+    <string name="additional_info_add_screen">Дополнительная информация</string>
+    <string name="title_hint_additional_info">(необязательно)</string>
+    <string name="question_diet_add_screen">Укажите, соответствует ли блюдо диетическим требованиям:</string>
+    <string name="info_dialog">Укажите дополнительную информацию — это поможет при рекомендации рецепта</string>
 
     <string-array name="categories_array">
         <item>Выбрать</item>

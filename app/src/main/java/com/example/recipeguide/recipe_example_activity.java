@@ -123,13 +123,13 @@ public class recipe_example_activity extends AppCompatActivity {
             return insets;
         });
 
-        baseAdActivity = new BaseAdActivity(
+        /*baseAdActivity = new BaseAdActivity(
                 this,
                 R.id.main,
                 R.id.ad_container_view,
                 "demo-banner-yandex"
         );
-        baseAdActivity.load();
+        baseAdActivity.load();*/
         /*adContainerView = findViewById(R.id.ad_view_container);
         adView = new AdView(this);
         adView.setAdUnitId("ca-app-pub-3940256099942544/9214589741");
@@ -529,7 +529,7 @@ public class recipe_example_activity extends AppCompatActivity {
             // Устанавливаем "красное сердце"
             saveFavoritesButton.setImageResource(R.drawable.button_heart_red);
             isFavorite = true;
-            databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),User.username,"favorite",dishId,System.currentTimeMillis());
+            databaseHelper.insertEvent(java.util.UUID.randomUUID().toString(),"favorite",dishId,System.currentTimeMillis());
 
         }
     }
@@ -544,20 +544,6 @@ public class recipe_example_activity extends AppCompatActivity {
         }
     }
 
-    public void toggleCookButton(DatabaseHandler databaseHandler, String id){
-        databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(),User.username,"cook", id,System.currentTimeMillis());
-        Recipe r = databaseHandler.getRecipe(id);
-        updateCook(r);
-    }
-
-    private void updateCook(Recipe r) {
-        if (r.getId() != null) {
-            if (r != null) {
-                r.setIsCook(1);
-                databaseHelper.updateRecipe(r);
-            }
-        }
-    }
     private void createPdf(Recipe selectedDish) throws FileNotFoundException {
         try {
             boolean isRussian = sharedPreferences.getBoolean("language", false);

@@ -397,7 +397,7 @@
                     android:id="@+id/cb_other_kitchen"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/cb_other"
+                    android:text="@string/rb_other"
                     app:layout_constraintStart_toStartOf="@+id/like_kitchen"
                     app:layout_constraintTop_toBottomOf="@+id/cb_turkey"
                     tools:ignore="TouchTargetSizeCheck" />

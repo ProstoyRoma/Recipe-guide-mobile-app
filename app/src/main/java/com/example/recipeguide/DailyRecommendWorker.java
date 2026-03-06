@@ -35,7 +35,7 @@ public class DailyRecommendWorker extends Worker {
         Log.d("MyLog", "DailyRecommendWorker doWork start: " + System.currentTimeMillis());
         try {
             RecommendationManager manager = new RecommendationManager(getApplicationContext());
-            List<String> top3 = manager.generateTop3ForUser(userId);
+            List<String> top3 = manager.generateTop3ForUser();
 
             // save to DB as JSON array (DatabaseHandler должен реализовать insertRecommendation)
             DatabaseHandler db = new DatabaseHandler(getApplicationContext());
