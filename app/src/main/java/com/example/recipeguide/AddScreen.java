@@ -61,8 +61,12 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.common.reflect.TypeToken;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.Translation;
@@ -114,6 +118,7 @@ public class AddScreen extends AppCompatActivity {
     private Spinner spinner;
     private String recipeNameTranslate, ingredientDataTranslate, recipeDataTranslate;
     private String photoFileName; // Название сохранённого файла
+    private int recipesVersion, tagsVersion;
     private ImageButton btnAddImage;
     private Bitmap selectedBitmap; // Для хранения выбранного изображения
     private IngredientsFragmentForAddScreen ingredientFragment = new IngredientsFragmentForAddScreen();
@@ -477,6 +482,8 @@ public class AddScreen extends AppCompatActivity {
             if (validateInputs()) {
                 String recipeId = UUID.randomUUID().toString();
                 if (validateImage()) {
+                    updateRecipesVersion();
+                    updateTagsVersion();
                     saveData(databaseHandler, recipeId, translated);
                     saveDataFirebaseAllRecipe(recipeId, translated, databaseHandler);
                     Toast.makeText(AddScreen.this, R.string.good_save, Toast.LENGTH_LONG).show();
@@ -907,15 +914,20 @@ public class AddScreen extends AppCompatActivity {
                     myRef.child(recipeId).child("ingredient_en").setValue(translated[4]);
                     myRef.child(recipeId).child("category").setValue(spinner.getSelectedItemPosition() - 1);
 
+                    myRef.child(recipeId).child("version").setValue(recipesVersion);
+                    myRef.child(recipeId).child("last_updated").setValue(ServerValue.TIMESTAMP);
+
                     if(!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")){
                         myRef.child(recipeId).child("meta").child("cuisine").setValue(selectedCuisine.trim());
                         database.getReference("indices").child("by_cuisine").child(selectedCuisine.trim()).child(recipeId).setValue(true);
+                        database.getReference("indices").child("by_cuisine").child(selectedCuisine.trim()).child("version").setValue(tagsVersion);
 
                     }
                     if(!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")){
                         for(int i = 0; i < selectedDiet.size(); i++){
                             myRef.child(recipeId).child("meta").child("diet").child(String.valueOf(i)).setValue(selectedDiet.get(i).trim());
                             database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child(recipeId).setValue(true);
+                            database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child("version").setValue(true);
 
                         }
                     }
@@ -1115,11 +1127,11 @@ public class AddScreen extends AppCompatActivity {
         databaseHandler.addRecipe(recipe);
 
         if(!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")){
-            databaseHandler.insertTags(new Tags(recipeId, "cuisine", selectedCuisine.trim()));
+            databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeId, "cuisine", selectedCuisine.trim()));
         }
         if(!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")){
             for(String diet: selectedDiet){
-                databaseHandler.insertTags(new Tags(recipeId, "diet", diet));
+                databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeId, "diet", diet));
             }
         }
         //});
@@ -1183,6 +1195,61 @@ public class AddScreen extends AppCompatActivity {
 
         //Recipe recipe = new Recipe(recipeId, recipeName, photoFileName, preparationTime, recipeData, ingredientsData, 1);
 
+    }
+    private void updateRecipesVersion() {
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("recipes").child("metadata");
+
+        // Получаем текущую версию и увеличиваем
+        myRef.child("recipes_version").addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        Integer currentVersion = snapshot.getValue(Integer.class);
+                        recipesVersion = (currentVersion == null) ? 1 : currentVersion + 1;
+
+                        // Обновляем версию и временную метку
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("recipes_version", recipesVersion);
+                        updates.put("last_updated", ServerValue.TIMESTAMP);
+
+                        myRef.updateChildren(updates);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        Log.e("VERSION_UPDATE", "Failed to update version", error.toException());
+                    }
+                }
+        );
+    }
+
+    private void updateTagsVersion() {
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("indices").child("metadata");
+
+        // Получаем текущую версию и увеличиваем
+        myRef.child("tags_version").addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        Integer currentVersion = snapshot.getValue(Integer.class);
+                        tagsVersion = (currentVersion == null) ? 1 : currentVersion + 1;
+
+                        // Обновляем версию и временную метку
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("tags_version", tagsVersion);
+                        updates.put("last_updated", ServerValue.TIMESTAMP);
+
+                        myRef.updateChildren(updates);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        Log.e("VERSION_UPDATE", "Failed to update version", error.toException());
+                    }
+                }
+        );
     }
 
     private boolean validateInputs() {

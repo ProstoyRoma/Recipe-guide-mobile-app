@@ -85,22 +85,41 @@ public class DatabaseHandler extends SQLiteAssetHelper {
     }
 
     public void insertOrUpdateRecipe(Recipe recipe) {
-        myDataBase = this.getWritableDatabase();
+        SQLiteDatabase db = this.getWritableDatabase();
 
-        // Проверяем, есть ли рецепт в SQLite
-        Cursor cursor = myDataBase.query(Util.TABLE_NAME, null, Util.KEY_ID + "=?", new String[]{String.valueOf(recipe.getId())}, null, null, null);
-        boolean exists = cursor.moveToFirst();
-        cursor.close();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Util.KEY_ID, recipe.getId());
+        contentValues.put(Util.KEY_NAME_EN, recipe.getName_en());
+        contentValues.put(Util.KEY_NAME, recipe.getName());
+        contentValues.put(Util.KEY_INGREDIENT_EN, recipe.getIngredient_en());
+        contentValues.put(Util.KEY_INGREDIENT, recipe.getIngredient());
+        contentValues.put(Util.KEY_RECIPE_EN, recipe.getRecipe_en());
+        contentValues.put(Util.KEY_RECIPE, recipe.getRecipe());
+        contentValues.put(Util.KEY_IMAGE, recipe.getImage());
+        contentValues.put(Util.KEY_COOKINGTIME, recipe.getCookingTime());
+        contentValues.put(Util.KEY_CATEGORY, recipe.getCategory());
+        contentValues.put(Util.KEY_ISFAVORITE, recipe.getIsFavorite());
+        contentValues.put(Util.KEY_ISCOOKED, recipe.getIsCook());
 
-        if (!exists) {
-            addRecipe(recipe);
+        if(recipe.getIngredient_parsed() != null){
+            contentValues.put(Util.KEY_INGREDIENT_PARSED, recipe.getIngredient_parsed());
         }
-        myDataBase.close();
+        if(recipe.getVectors() != null){
+            contentValues.put(Util.KEY_VECTOR, recipe.getVectors());
+        }
+
+        // Вставляем с конфликтом - заменяем при совпадении ID
+        db.insertWithOnConflict(Util.TABLE_NAME,
+                null,
+                contentValues,
+                SQLiteDatabase.CONFLICT_REPLACE);
+
+        db.close();
     }
 
+
     //Добавить рецепт
-    public void addRecipe(Recipe recipe) {
-        SQLiteDatabase db = this.getWritableDatabase();
+    public void addRecipe(Recipe recipe, SQLiteDatabase db) {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(Util.KEY_ID, recipe.getId());
@@ -123,6 +142,12 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         }
 
         db.insert(Util.TABLE_NAME, null, contentValues);
+    }
+
+    // Добавить рецепт (старый метод для обратной совместимости)
+    public void addRecipe(Recipe recipe) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        addRecipe(recipe, db);
         db.close();
     }
 
@@ -133,7 +158,8 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         cv.put(Util.KEY_RECIPE_ID, recipeId);
         cv.put(Util.KEY_TS_LOCAL, tsLocal);
         SQLiteDatabase db = this.getWritableDatabase();
-        db.insertWithOnConflict(Util.TABLE_NAME_EVENT, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
+        db.insert(Util.TABLE_NAME_EVENT, null, cv);
+        db.close();
     }
 
     public List<Event> getRecentEvents(long sinceTs) {
@@ -531,21 +557,52 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         contentValues.put(Util.KEY_ISCOOKED, 1);
 
         db.update(Util.TABLE_NAME, contentValues, Util.KEY_ID + "=?", new String[]{String.valueOf(rId)});
-    }
+        db.close();
 
-    public int updateRecipe(Recipe recipe) {
+    }
+    public void updateIsFavoriteRecipe(String rId, int isFavorite) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
+        contentValues.put(Util.KEY_ISFAVORITE, isFavorite);
+
+        db.update(Util.TABLE_NAME, contentValues, Util.KEY_ID + "=?", new String[]{String.valueOf(rId)});
+        db.close();
+    }
+
+    public void updateRecipe(Recipe recipe, SQLiteDatabase db) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(Util.KEY_NAME_EN, recipe.getName_en());
         contentValues.put(Util.KEY_NAME, recipe.getName());
+        contentValues.put(Util.KEY_INGREDIENT_EN, recipe.getIngredient_en());
+        contentValues.put(Util.KEY_INGREDIENT, recipe.getIngredient());
+        contentValues.put(Util.KEY_RECIPE_EN, recipe.getRecipe_en());
+        contentValues.put(Util.KEY_RECIPE, recipe.getRecipe());
         contentValues.put(Util.KEY_IMAGE, recipe.getImage());
         contentValues.put(Util.KEY_COOKINGTIME, recipe.getCookingTime());
-        contentValues.put(Util.KEY_RECIPE, recipe.getRecipe());
-        contentValues.put(Util.KEY_INGREDIENT, recipe.getIngredient());
+        contentValues.put(Util.KEY_CATEGORY, recipe.getCategory());
         contentValues.put(Util.KEY_ISFAVORITE, recipe.getIsFavorite());
         contentValues.put(Util.KEY_ISCOOKED, recipe.getIsCook());
 
-        return db.update(Util.TABLE_NAME, contentValues, Util.KEY_ID + "=?", new String[]{String.valueOf(recipe.getId())});
+        if(recipe.getIngredient_parsed() != null){
+            contentValues.put(Util.KEY_INGREDIENT_PARSED, recipe.getIngredient_parsed());
+        }
+        if(recipe.getVectors() != null){
+            contentValues.put(Util.KEY_VECTOR, recipe.getVectors());
+        }
+
+        db.update(Util.TABLE_NAME,
+                contentValues,
+                Util.KEY_ID + "=?",
+                new String[]{String.valueOf(recipe.getId())});
+    }
+
+    // Обновить рецепт (для внешнего использования)
+    public void updateRecipe(Recipe recipe) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        updateRecipe(recipe, db);
+        db.close();
     }
 
     public void addVectorToRecipe(String rId, String ingrParsed, String vector) {
@@ -636,14 +693,15 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = null;
         try {
-            c = db.query(Util.TABLE_NAME_TAGS, new String[]{Util.KEY_RECIPE_ID, Util.KEY_KEY, Util.KEY_VALUE},
+            c = db.query(Util.TABLE_NAME_TAGS, new String[]{Util.KEY_TAG_ID, Util.KEY_RECIPE_ID, Util.KEY_KEY, Util.KEY_VALUE},
                     null, null,
                     null, null, null);
             while (c != null && c.moveToNext()) {
+                String tid = c.getString(c.getColumnIndexOrThrow(Util.KEY_TAG_ID));
                 String rid = c.getString(c.getColumnIndexOrThrow(Util.KEY_RECIPE_ID));
                 String key = c.getString(c.getColumnIndexOrThrow(Util.KEY_KEY));
                 String value = c.getString(c.getColumnIndexOrThrow(Util.KEY_VALUE));
-                out.add(new Tags(rid, key, value));
+                out.add(new Tags(tid, rid, key, value));
             }
         } finally {
             if (c != null) c.close();
@@ -653,6 +711,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
 
     public void insertTags(Tags tag){
         ContentValues cv = new ContentValues();
+        cv.put(Util.KEY_TAG_ID, tag.getTagId());
         cv.put(Util.KEY_RECIPE_ID, tag.getRecipeId());
         cv.put(Util.KEY_KEY, tag.getKey());
         cv.put(Util.KEY_VALUE, tag.getValue());

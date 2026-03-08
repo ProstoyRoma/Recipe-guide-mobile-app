@@ -30,21 +30,28 @@ import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import Data.DatabaseHandler;
 import Model.Recipe;
+import Model.Tags;
 
 public class SplashScreen extends AppCompatActivity {
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     boolean russianLanguage;
-    DatabaseHandler databaseHandler;
+    private DatabaseHandler databaseHandler;
+    private DatabaseReference recipeRef;
     private static Translator enToRuTranslator, ruToEnTranslator;
     private static final String PREFS = "app_prefs";
     private static final String KEY_REORDER = "reorder_completed";
     private static final String KEY_ONBOARDING = "questionnaire_completed";
+    private static final long SYNC_INTERVAL = 24 * 60 * 60 * 1000; // 24 часа
+    private static final String TAG = "RecipeSync";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +67,8 @@ public class SplashScreen extends AppCompatActivity {
 
         FirebaseApp.initializeApp(this);
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+
+        syncRecipesAndTagsIfNeeded();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.motionLayout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -152,28 +161,7 @@ public class SplashScreen extends AppCompatActivity {
         });
 
 
-        uploadRecipesFirebase(this);
-
-
-        /*if (!sharedPreferences.contains("language")) {
-            // Определяем системный язык
-            String systemLanguage = getSystemLanguage();
-
-            // Если системный язык русский, устанавливаем русский, иначе — английский
-            boolean defaultRussian = systemLanguage.equals("ru");
-            editor.putBoolean("language", defaultRussian);
-            editor.apply();
-
-            russianLanguage = defaultRussian; // Применяем значение в переменную
-        } else {
-            russianLanguage = sharedPreferences.getBoolean("language", false); // Загружаем сохранённое значение
-        }
-
-        if (sharedPreferences.getBoolean("language", false)){
-            setAppLocale("ru");
-        }else{
-            setAppLocale("en");
-        }*/
+        //uploadRecipesFirebase(this);
 
 
         // Перевод с русского на английский
@@ -181,25 +169,6 @@ public class SplashScreen extends AppCompatActivity {
         // Перевод с английского на русский
         enToRuTranslator();
 
-
-        /*TranslatorOptions options = new TranslatorOptions.Builder()
-                .setSourceLanguage(sharedPreferences.getBoolean("language", false) ?
-                        TranslateLanguage.RUSSIAN : TranslateLanguage.ENGLISH)
-                .setTargetLanguage(sharedPreferences.getBoolean("language", false) ?
-                        TranslateLanguage.ENGLISH : TranslateLanguage.RUSSIAN)
-                .build();
-
-        Translator translator = Translation.getClient(options);
-
-        translator.downloadModelIfNeeded();*/
-
-        /*new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                startActivity(new Intent(SplashScreen.this, MainScreen.class));
-                finish();
-            }
-        }, 2500);*/
 
     }
 
@@ -210,8 +179,159 @@ public class SplashScreen extends AppCompatActivity {
         finish();
     }
 
+    public void syncRecipesAndTagsIfNeeded() {
+        long lastSync = sharedPreferences.getLong("last_sync_time", 0);
+        if (System.currentTimeMillis() - lastSync < SYNC_INTERVAL) {
+            Log.d(TAG, "Sync not needed yet");
+            return;
+        }
+
+        syncTags();
+        syncRecipes();
+    }
+
+    private void syncRecipes() {
+        // Получаем версию последней синхронизации
+        int localVersion = sharedPreferences.getInt("sync_version_recipes", 0);
+
+        // Запрашиваем обновления с Firebase
+        recipeRef.child("recipes").child("metadata").child("recipes_version")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        int remoteVersion = snapshot.getValue(Integer.class);
+
+                        if (remoteVersion > localVersion) {
+                            // Есть обновления
+                            fetchUpdatesRecipes(localVersion, remoteVersion);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
+
+                    }
+                });
+    }
+
+    private void fetchUpdatesRecipes(int fromVersion, int toVersion) {
+        recipeRef.child("recipes")
+                .orderByChild("version")
+                .startAt(fromVersion + 1)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+
+                        for (DataSnapshot recipeSnapshot : snapshot.getChildren()) {
+                            Recipe recipe = new Recipe();
+                            recipe.setId(recipeSnapshot.getKey());
+                            recipe.setName(recipeSnapshot.child("name").getValue(String.class));
+                            recipe.setName_en(recipeSnapshot.child("name_en").getValue(String.class));
+                            recipe.setImage(recipeSnapshot.child("image").getValue(String.class));
+                            recipe.setCookingTime(recipeSnapshot.child("cookingTime").getValue(Integer.class));
+                            recipe.setCategory(recipeSnapshot.child("category").getValue(Integer.class));
+                            recipe.setIngredient(recipeSnapshot.child("ingredient").getValue(String.class));
+                            recipe.setIngredient_en(recipeSnapshot.child("ingredient_en").getValue(String.class));
+                            recipe.setRecipe(recipeSnapshot.child("recipe").getValue(String.class));
+                            recipe.setRecipe_en(recipeSnapshot.child("recipe_en").getValue(String.class));
+                            recipe.setIngredient_parsed(recipeSnapshot.child("ingredients_parsed").getValue(String.class));
+                            String ingVec = recipeSnapshot.child("ingredient_vectors").getValue(String.class);
+                            recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
+                            databaseHandler.addRecipe(recipe);
+                        }
+
+                        // Обновляем версию синхронизации
+                        sharedPreferences.edit()
+                                .putInt("sync_version_recipes", toVersion)
+                                .apply();
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
+
+                    }
+                });
+
+        sharedPreferences.edit()
+                .putLong("last_sync_time", System.currentTimeMillis())
+                .apply();
+    }
+
+    private void syncTags() {
+        // Получаем версию последней синхронизации
+        int localVersion = sharedPreferences.getInt("sync_version_tags", 0);
+
+        // Запрашиваем обновления с Firebase
+        recipeRef.child("indices").child("metadata").child("tags_version")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        int remoteVersion = snapshot.getValue(Integer.class);
+
+                        if (remoteVersion > localVersion) {
+                            // Есть обновления
+                            fetchUpdatesTags(localVersion, remoteVersion);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
+
+                    }
+                });
+    }
+
+    private void fetchUpdatesTags(int fromVersion, int toVersion) {
+        List<DatabaseReference> indexRefs = Arrays.asList(
+                recipeRef.child("indices/by_cuisine"),
+                recipeRef.child("indices/by_diet")
+                // добавьте другие индексы по необходимости
+        );
+
+        for (DatabaseReference ref : indexRefs) {
+            ref.orderByChild("version")
+                    .startAt(fromVersion + 1)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot snapshot) {
+
+                            for (DataSnapshot tagSnapshot : snapshot.getChildren()) {
+                                for (DataSnapshot recipeSnapshot : tagSnapshot.getChildren()) {
+
+                                    if(ref == recipeRef.child("indices/by_cuisine")){
+                                        databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeSnapshot.getKey(), "cuisine", tagSnapshot.getKey()));
+                                    }else if(ref == recipeRef.child("indices/by_diet")){
+                                        databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeSnapshot.getKey(), "diet", tagSnapshot.getKey()));
+                                    }
+
+                                }
+                            }
+
+                            // Обновляем версию синхронизации
+                            sharedPreferences.edit()
+                                    .putInt("sync_version_tags", toVersion)
+                                    .apply();
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
+
+                        }
+                    });
+        }
+        sharedPreferences.edit()
+                .putLong("last_sync_time", System.currentTimeMillis())
+                .apply();
+    }
+
     private void uploadRecipesFirebase(Context context) {
-        DatabaseReference recipeRef = FirebaseDatabase.getInstance().getReference("recipes");
+        recipeRef = FirebaseDatabase.getInstance().getReference("recipes");
 
         recipeRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -270,53 +390,6 @@ public class SplashScreen extends AppCompatActivity {
         return ruToEnTranslator;
     }
 
-    /*private void setAppLocale(String languageCode) {
-        Locale locale = new Locale(languageCode);
-        Locale.setDefault(locale);
-
-        Configuration config = new Configuration();
-        config.setLocale(locale);
-        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
-
-    }*/
-
-    private String getSystemLanguage() {
-        return Locale.getDefault().getLanguage(); // Возвращает "ru" для русского, "en" для английского
-    }
-    /*@Override
-    protected void attachBaseContext(Context newBase) {
-        SharedPreferences prefs = newBase.getSharedPreferences("MODE", Context.MODE_PRIVATE);
-
-        // Проверяем, существует ли ключ "language"
-        if (!prefs.contains("language")) {
-            // Первый запуск - устанавливаем язык системы
-            String systemLang = getSystemLanguage();
-            setAppLocale(systemLang);
-
-            // Сохраняем выбор языка
-            boolean isRussian = "ru".equals(systemLang);
-            prefs.edit().putBoolean("language", isRussian).apply();
-        }
-
-        // Теперь всегда используем сохраненный язык
-        boolean useRussian = prefs.getBoolean("language", true);
-        String langToSet = useRussian ? "ru" : "en";
-
-        // Применяем локаль
-        Context context = setAppLocale(langToSet);
-        super.attachBaseContext(context);
-    }
-
-    // Метод для применения локали
-    private Context setAppLocale(String languageCode) {
-        Locale locale = new Locale(languageCode);
-        Locale.setDefault(locale);
-
-        Configuration config = new Configuration();
-        config.setLocale(locale);
-
-        return getBaseContext().createConfigurationContext(config);
-    }*/
 
     private void applyLanguage() {
         SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);

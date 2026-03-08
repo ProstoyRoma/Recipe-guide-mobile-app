@@ -2,7 +2,7 @@ package Utils;
 
 public class Util {
 
-    public static final int DATABASE_VERSION = 12;
+    public static final int DATABASE_VERSION = 13;
     public static final String DATABASE_NAME = "recipeDB.db";
     public static final String TABLE_NAME = "dish";
     public static final String TABLE_NAME_EVENT = "event";
@@ -37,6 +37,7 @@ public class Util {
     public static final String KEY_LIKECATEGORIES = "likeCategories";
     public static final String KEY_LIKECUISINE = "likeCuisine";
     public static final String KEY_TIMESTAMP = "timestamp";
+    public static final String KEY_TAG_ID = "tagId";
     public static final String KEY_KEY = "key";
     public static final String KEY_VALUE = "value";
 

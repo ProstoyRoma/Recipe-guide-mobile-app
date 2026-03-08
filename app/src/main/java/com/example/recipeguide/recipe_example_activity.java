@@ -536,11 +536,7 @@ public class recipe_example_activity extends AppCompatActivity {
 
     private void updateFavorite(String dishId, DatabaseHandler databaseHandler, int isFavorite) {
         if (dishId != null) {
-            Recipe selectedDish = databaseHandler.getRecipe(dishId);
-            if (selectedDish != null) {
-                selectedDish.setIsFavorite(isFavorite);
-                databaseHandler.updateRecipe(selectedDish);
-            }
+            databaseHandler.updateIsFavoriteRecipe(dishId, isFavorite);
         }
     }
 

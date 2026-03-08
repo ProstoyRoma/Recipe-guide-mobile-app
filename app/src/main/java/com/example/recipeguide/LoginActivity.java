@@ -392,7 +392,7 @@ public class LoginActivity extends AppCompatActivity {
                             recipe.setIsFavorite(1);
                             recipe.setIsCook(1);
 
-                            dbHelper.insertOrUpdateRecipe(recipe); // ✅ Сохраняем в SQLite
+                            dbHelper.addRecipe(recipe); // ✅ Сохраняем в SQLite
                         } else {
                             dbHelper.updateIsCookRecipe(recipeId);
 
@@ -502,6 +502,7 @@ public class LoginActivity extends AppCompatActivity {
                             recipe.setName_en(child.child("name_en").getValue(String.class));
                             recipe.setImage(child.child("image").getValue(String.class));
                             recipe.setCookingTime(child.child("cookingTime").getValue(Integer.class));
+                            recipe.setCategory(child.child("cookingTime").getValue(Integer.class));
                             recipe.setIngredient(child.child("ingredient").getValue(String.class));
                             recipe.setIngredient_en(child.child("ingredient_en").getValue(String.class));
                             recipe.setRecipe(child.child("recipe").getValue(String.class));
@@ -512,7 +513,7 @@ public class LoginActivity extends AppCompatActivity {
                             recipe.setIsFavorite(1);
                             recipe.setIsCook(0);
 
-                            dbHelper.insertOrUpdateRecipe(recipe); // ✅ Сохраняем в SQLite
+                            dbHelper.addRecipe(recipe); // ✅ Сохраняем в SQLite
                         }
                         // Если значение узла boolean true или строка "true" — считаем, что рецепт есть в списке
                         Object val = child.getValue();

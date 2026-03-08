@@ -174,7 +174,7 @@ public class Recipe_Fragment_Example extends Fragment {
         if (r.getId() != null) {
             if (r != null) {
                 r.setIsCook(1);
-                databaseHandler.updateRecipe(r);
+                databaseHandler.updateIsCookRecipe(r.getId());
             }
         }
         if (user != null) {
