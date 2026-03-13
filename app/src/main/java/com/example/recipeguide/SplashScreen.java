@@ -34,7 +34,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import Data.DatabaseHandler;
 import Model.Recipe;
@@ -46,12 +53,16 @@ public class SplashScreen extends AppCompatActivity {
     boolean russianLanguage;
     private DatabaseHandler databaseHandler;
     private DatabaseReference recipeRef;
+    private FirebaseDatabase database;
+
     private static Translator enToRuTranslator, ruToEnTranslator;
     private static final String PREFS = "app_prefs";
     private static final String KEY_REORDER = "reorder_completed";
     private static final String KEY_ONBOARDING = "questionnaire_completed";
     private static final long SYNC_INTERVAL = 24 * 60 * 60 * 1000; // 24 часа
     private static final String TAG = "RecipeSync";
+    private ExecutorService executorService;
+    private Handler mainHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +79,7 @@ public class SplashScreen extends AppCompatActivity {
         FirebaseApp.initializeApp(this);
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
-        syncRecipesAndTagsIfNeeded();
+        //syncRecipesAndTagsIfNeeded();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.motionLayout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -76,23 +87,22 @@ public class SplashScreen extends AppCompatActivity {
             return insets;
 
         });
-        applyLanguage();
         sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
-        User.username = sharedPreferences.getString("username", User.username);
-        User.userImage = sharedPreferences.getString("userImage", User.userImage);
-        User.allergy = sharedPreferences.getString("userAllergy", User.allergy);
-        User.diet = sharedPreferences.getString("userDiet", User.diet);
-        User.likeCategory = sharedPreferences.getString("userLikeCategory", User.likeCategory);
-        User.likeCuisine = sharedPreferences.getString("userLikeCuisine", User.likeCuisine);
-        User.skillLevel = sharedPreferences.getString("userSkillLevel", User.skillLevel);
 
         final AtomicBoolean started = new AtomicBoolean(false);
         final long MIN_DISPLAY_MS = 2500L;
         final long splashStartTime = System.currentTimeMillis();
         databaseHandler = new DatabaseHandler(this);
+        database = FirebaseDatabase.getInstance();
 
-        Handler mainHandler = new Handler(Looper.getMainLooper());
+        //recipeRef = database.getReference();
+
+        // Инициализируем компоненты для фоновой работы
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
+
+        /*Handler mainHandler = new Handler(Looper.getMainLooper());
 
         databaseHandler.getRecommendedRecipe(this, new RecommendedCallback() {
             @Override
@@ -104,34 +114,12 @@ public class SplashScreen extends AppCompatActivity {
                     long remaining = MIN_DISPLAY_MS - elapsed;
                     if (remaining <= 0) {
                         if (started.compareAndSet(false, true)) {
-                            SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-                            boolean reorderDone = prefs.getBoolean(KEY_REORDER, false);
-                            boolean onboardingDone = prefs.getBoolean(KEY_ONBOARDING, false);
-                            if (!reorderDone) {
-                                startActivity(new Intent(SplashScreen.this, ReorderActivity.class));
-                                finish();
-                            } else if (!onboardingDone) {
-                                startActivity(new Intent(SplashScreen.this, QuestionnaireActivity.class));
-                                finish();
-                            } else {
-                                startMainActivity(MainScreen.class);
-                            }
+                            navigateToNextScreen();
                         }
                     } else {
                         mainHandler.postDelayed(() -> {
                             if (started.compareAndSet(false, true)) {
-                                SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
-                                boolean reorderDone = prefs.getBoolean(KEY_REORDER, false);
-                                boolean onboardingDone = prefs.getBoolean(KEY_ONBOARDING, false);
-                                if (!reorderDone) {
-                                    startActivity(new Intent(SplashScreen.this, ReorderActivity.class));
-                                    finish();
-                                } else if (!onboardingDone) {
-                                    startActivity(new Intent(SplashScreen.this, QuestionnaireActivity.class));
-                                    finish();
-                                } else {
-                                    startMainActivity(MainScreen.class);
-                                }
+                                navigateToNextScreen();
                             }
                         }, remaining);
                     }
@@ -147,35 +135,114 @@ public class SplashScreen extends AppCompatActivity {
                     long remaining = MIN_DISPLAY_MS - elapsed;
                     if (remaining <= 0) {
                         if (started.compareAndSet(false, true)) {
-                            startMainActivity(MainScreen.class);
+                            navigateToNextScreen();
                         }
                     } else {
                         mainHandler.postDelayed(() -> {
                             if (started.compareAndSet(false, true)) {
-                                startMainActivity(MainScreen.class);
+                                navigateToNextScreen();
+                            }
+                        }, remaining);
+                    }
+                });
+            }
+        });*/
+
+
+        // Запускаем синхронизацию в фоне
+        startBackgroundSync();
+
+        //uploadRecipesFirebase(this);
+
+        loadUserData();
+        applyLanguage();
+
+        // Перевод с русского на английский
+        ruToEnTranslator();
+
+        // Перевод с английского на русский
+        enToRuTranslator();
+
+        // Запускаем логику сплеш-скрина
+        startSplashLogic();
+
+
+    }
+
+    private void startBackgroundSync() {
+        executorService.execute(() -> {
+            try {
+                syncRecipesAndTagsIfNeeded();
+                Log.d(TAG, "Background sync completed");
+            } catch (Exception e) {
+                Log.e(TAG, "Background sync failed", e);
+            }
+        });
+    }
+
+    private void startSplashLogic() {
+        final AtomicBoolean started = new AtomicBoolean(false);
+        final long MIN_DISPLAY_MS = 2500L;
+        final long splashStartTime = System.currentTimeMillis();
+
+        databaseHandler.getRecommendedRecipe(this, new RecommendedCallback() {
+            @Override
+            public void onSuccess() {
+                mainHandler.post(() -> {
+                    if (started.get()) return;
+                    long elapsed = System.currentTimeMillis() - splashStartTime;
+                    long remaining = MIN_DISPLAY_MS - elapsed;
+
+                    if (remaining <= 0) {
+                        if (started.compareAndSet(false, true)) {
+                            navigateToNextScreen();
+                        }
+                    } else {
+                        mainHandler.postDelayed(() -> {
+                            if (started.compareAndSet(false, true)) {
+                                navigateToNextScreen();
+                            }
+                        }, remaining);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                mainHandler.post(() -> {
+                    if (started.get()) return;
+                    long elapsed = System.currentTimeMillis() - splashStartTime;
+                    long remaining = MIN_DISPLAY_MS - elapsed;
+
+                    if (remaining <= 0) {
+                        if (started.compareAndSet(false, true)) {
+                            navigateToNextScreen();
+                        }
+                    } else {
+                        mainHandler.postDelayed(() -> {
+                            if (started.compareAndSet(false, true)) {
+                                navigateToNextScreen();
                             }
                         }, remaining);
                     }
                 });
             }
         });
-
-
-        //uploadRecipesFirebase(this);
-
-
-        // Перевод с русского на английский
-        ruToEnTranslator();
-        // Перевод с английского на русский
-        enToRuTranslator();
-
-
     }
 
     // Вынесенная функция запуска Activity
-    private void startMainActivity(Class x) {
-        Intent intent = new Intent(SplashScreen.this, x);
-        startActivity(intent);
+    private void navigateToNextScreen() {
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+        boolean reorderDone = prefs.getBoolean(KEY_REORDER, false);
+        boolean onboardingDone = prefs.getBoolean(KEY_ONBOARDING, false);
+
+        if (!reorderDone) {
+            startActivity(new Intent(SplashScreen.this, ReorderActivity.class));
+        } else if (!onboardingDone) {
+            startActivity(new Intent(SplashScreen.this, QuestionnaireActivity.class));
+        } else {
+            startActivity(new Intent(SplashScreen.this, MainScreen.class));
+        }
         finish();
     }
 
@@ -186,95 +253,89 @@ public class SplashScreen extends AppCompatActivity {
             return;
         }
 
-        syncTags();
+        // Запускаем синхронизацию в фоне
         syncRecipes();
-    }
+        syncTags();
 
-    private void syncRecipes() {
-        // Получаем версию последней синхронизации
-        int localVersion = sharedPreferences.getInt("sync_version_recipes", 0);
-
-        // Запрашиваем обновления с Firebase
-        recipeRef.child("recipes").child("metadata").child("recipes_version")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        int remoteVersion = snapshot.getValue(Integer.class);
-
-                        if (remoteVersion > localVersion) {
-                            // Есть обновления
-                            fetchUpdatesRecipes(localVersion, remoteVersion);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
-
-                    }
-                });
-    }
-
-    private void fetchUpdatesRecipes(int fromVersion, int toVersion) {
-        recipeRef.child("recipes")
-                .orderByChild("version")
-                .startAt(fromVersion + 1)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-
-                        for (DataSnapshot recipeSnapshot : snapshot.getChildren()) {
-                            Recipe recipe = new Recipe();
-                            recipe.setId(recipeSnapshot.getKey());
-                            recipe.setName(recipeSnapshot.child("name").getValue(String.class));
-                            recipe.setName_en(recipeSnapshot.child("name_en").getValue(String.class));
-                            recipe.setImage(recipeSnapshot.child("image").getValue(String.class));
-                            recipe.setCookingTime(recipeSnapshot.child("cookingTime").getValue(Integer.class));
-                            recipe.setCategory(recipeSnapshot.child("category").getValue(Integer.class));
-                            recipe.setIngredient(recipeSnapshot.child("ingredient").getValue(String.class));
-                            recipe.setIngredient_en(recipeSnapshot.child("ingredient_en").getValue(String.class));
-                            recipe.setRecipe(recipeSnapshot.child("recipe").getValue(String.class));
-                            recipe.setRecipe_en(recipeSnapshot.child("recipe_en").getValue(String.class));
-                            recipe.setIngredient_parsed(recipeSnapshot.child("ingredients_parsed").getValue(String.class));
-                            String ingVec = recipeSnapshot.child("ingredient_vectors").getValue(String.class);
-                            recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
-                            databaseHandler.addRecipe(recipe);
-                        }
-
-                        // Обновляем версию синхронизации
-                        sharedPreferences.edit()
-                                .putInt("sync_version_recipes", toVersion)
-                                .apply();
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
-
-                    }
-                });
 
         sharedPreferences.edit()
                 .putLong("last_sync_time", System.currentTimeMillis())
                 .apply();
     }
 
-    private void syncTags() {
+    private void syncRecipes() {
         // Получаем версию последней синхронизации
-        int localVersion = sharedPreferences.getInt("sync_version_tags", 0);
-
+        int localVersion = sharedPreferences.getInt("sync_version_recipes", 0);
+        //recipeRef = database.getReference("/recipes/metadata/recipes_version");
         // Запрашиваем обновления с Firebase
-        recipeRef.child("indices").child("metadata").child("tags_version")
+        recipeRef = FirebaseDatabase.getInstance().getReference("recipes_metadata");
+
+
+        recipeRef
+                //.child("recipes_version")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
-                        int remoteVersion = snapshot.getValue(Integer.class);
+                        try {
 
-                        if (remoteVersion > localVersion) {
-                            // Есть обновления
-                            fetchUpdatesTags(localVersion, remoteVersion);
+                            for (DataSnapshot child : snapshot.getChildren()) {
+                                if (Objects.equals(child.getKey(), "recipes_version")) {
+                                    int remoteVersion = child.getValue(Integer.class);
+                                    if (remoteVersion > localVersion) {
+                                        fetchUpdatesRecipes(localVersion, remoteVersion);
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error in syncTags", e);
                         }
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
+                    }
+                });
+    }
+
+    private void fetchUpdatesRecipes(int fromVersion, int toVersion) {
+        recipeRef = FirebaseDatabase.getInstance().getReference("recipes");
+
+        recipeRef
+                .orderByChild("version")
+                .startAt(fromVersion + 1)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+
+                        try {
+                            for (DataSnapshot recipeSnapshot : snapshot.getChildren()) {
+                                Recipe recipe = new Recipe();
+                                recipe.setId(recipeSnapshot.getKey());
+                                recipe.setName(recipeSnapshot.child("name").getValue(String.class));
+                                recipe.setName_en(recipeSnapshot.child("name_en").getValue(String.class));
+                                recipe.setImage(recipeSnapshot.child("image").getValue(String.class));
+                                recipe.setCookingTime(recipeSnapshot.child("cookingTime").getValue(Integer.class));
+                                recipe.setCategory(recipeSnapshot.child("category").getValue(Integer.class));
+                                recipe.setIngredient(recipeSnapshot.child("ingredient").getValue(String.class));
+                                recipe.setIngredient_en(recipeSnapshot.child("ingredient_en").getValue(String.class));
+                                recipe.setRecipe(recipeSnapshot.child("recipe").getValue(String.class));
+                                recipe.setRecipe_en(recipeSnapshot.child("recipe_en").getValue(String.class));
+                                recipe.setIngredient_parsed(recipeSnapshot.child("ingredients_parsed").getValue(String.class));
+                                String ingVec = recipeSnapshot.child("ingredient_vectors").getValue(String.class);
+                                recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
+                                databaseHandler.addRecipe(recipe);
+                            }
+
+                            // Обновляем версию синхронизации
+                            sharedPreferences.edit()
+                                    .putInt("sync_version_recipes", toVersion)
+                                    .apply();
+                        } catch (Exception e) {
+                            Log.e("Firebase", "Ошибка сохранения рецептов: " + e.getMessage());
+                        }
+
                     }
 
                     @Override
@@ -283,12 +344,49 @@ public class SplashScreen extends AppCompatActivity {
 
                     }
                 });
+
+
+    }
+
+    private void syncTags() {
+        // Получаем версию последней синхронизации
+        int localVersion = sharedPreferences.getInt("sync_version_tags", 0);
+
+        recipeRef = FirebaseDatabase.getInstance().getReference("indices");
+
+        // Запрашиваем обновления с Firebase
+        recipeRef
+                //.child("indices").child("metadata").child("tags_version")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        try {
+                            for (DataSnapshot child : snapshot.getChildren()) {
+                                if (Objects.equals(child.getKey(), "metadata")) {
+                                    int remoteVersion = child.child("tags_version").getValue(Integer.class);
+                                    if (remoteVersion > localVersion) {
+                                        fetchUpdatesTags(localVersion, remoteVersion);
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error in syncTags", e);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
+                    }
+                });
     }
 
     private void fetchUpdatesTags(int fromVersion, int toVersion) {
+        recipeRef = FirebaseDatabase.getInstance().getReference("indices");
+
         List<DatabaseReference> indexRefs = Arrays.asList(
-                recipeRef.child("indices/by_cuisine"),
-                recipeRef.child("indices/by_diet")
+                recipeRef.child("by_cuisine"),
+                recipeRef.child("by_diet")
                 // добавьте другие индексы по необходимости
         );
 
@@ -297,37 +395,48 @@ public class SplashScreen extends AppCompatActivity {
                     .startAt(fromVersion + 1)
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot snapshot) {
-
-                            for (DataSnapshot tagSnapshot : snapshot.getChildren()) {
-                                for (DataSnapshot recipeSnapshot : tagSnapshot.getChildren()) {
-
-                                    if(ref == recipeRef.child("indices/by_cuisine")){
-                                        databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeSnapshot.getKey(), "cuisine", tagSnapshot.getKey()));
-                                    }else if(ref == recipeRef.child("indices/by_diet")){
-                                        databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeSnapshot.getKey(), "diet", tagSnapshot.getKey()));
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            try {
+                                // Сохраняем теги из этого индекса
+                                for (DataSnapshot tagSnapshot : snapshot.getChildren()) {
+                                    for (DataSnapshot recipeSnapshot : tagSnapshot.getChildren()) {
+                                        if (ref == recipeRef.child("by_cuisine")) {
+                                            databaseHandler.insertTags(new Tags(
+                                                    UUID.randomUUID().toString(),
+                                                    recipeSnapshot.getKey(),
+                                                    "cuisine",
+                                                    tagSnapshot.getKey()
+                                            ));
+                                        } else if (ref == recipeRef.child("by_diet")) {
+                                            databaseHandler.insertTags(new Tags(
+                                                    UUID.randomUUID().toString(),
+                                                    recipeSnapshot.getKey(),
+                                                    "diet",
+                                                    tagSnapshot.getKey()
+                                            ));
+                                        }
                                     }
-
                                 }
+
+
+                                sharedPreferences.edit()
+                                        .putInt("sync_version_tags", toVersion)
+                                        .apply();
+
+
+
+                            } catch (Exception e) {
+                                Log.e("Firebase", "Ошибка сохранения тегов: " + e.getMessage());
                             }
-
-                            // Обновляем версию синхронизации
-                            sharedPreferences.edit()
-                                    .putInt("sync_version_tags", toVersion)
-                                    .apply();
-
                         }
 
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
-                            Log.e("Firebase", "Ошибка загрузки данных: " + error.getMessage());
-
+                            Log.e("Firebase", "Ошибка загрузки индекса: " + error.getMessage());
                         }
                     });
         }
-        sharedPreferences.edit()
-                .putLong("last_sync_time", System.currentTimeMillis())
-                .apply();
+
     }
 
     private void uploadRecipesFirebase(Context context) {
@@ -364,6 +473,16 @@ public class SplashScreen extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void loadUserData() {
+        User.username = sharedPreferences.getString("username", User.username);
+        User.userImage = sharedPreferences.getString("userImage", User.userImage);
+        User.allergy = sharedPreferences.getString("userAllergy", User.allergy);
+        User.diet = sharedPreferences.getString("userDiet", User.diet);
+        User.likeCategory = sharedPreferences.getString("userLikeCategory", User.likeCategory);
+        User.likeCuisine = sharedPreferences.getString("userLikeCuisine", User.likeCuisine);
+        User.skillLevel = sharedPreferences.getString("userSkillLevel", User.skillLevel);
     }
 
     public static Translator enToRuTranslator() {
@@ -417,5 +536,20 @@ public class SplashScreen extends AppCompatActivity {
         config.setLocale(locale);
 
         getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+            try {
+                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executorService.shutdownNow();
+            }
+        }
     }
 }

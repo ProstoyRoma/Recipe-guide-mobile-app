@@ -927,7 +927,7 @@ public class AddScreen extends AppCompatActivity {
                         for(int i = 0; i < selectedDiet.size(); i++){
                             myRef.child(recipeId).child("meta").child("diet").child(String.valueOf(i)).setValue(selectedDiet.get(i).trim());
                             database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child(recipeId).setValue(true);
-                            database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child("version").setValue(true);
+                            database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child("version").setValue(tagsVersion);
 
                         }
                     }
@@ -1198,7 +1198,7 @@ public class AddScreen extends AppCompatActivity {
     }
     private void updateRecipesVersion() {
         database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("recipes").child("metadata");
+        myRef = database.getReference("recipes_metadata");
 
         // Получаем текущую версию и увеличиваем
         myRef.child("recipes_version").addListenerForSingleValueEvent(
@@ -1208,12 +1208,17 @@ public class AddScreen extends AppCompatActivity {
                         Integer currentVersion = snapshot.getValue(Integer.class);
                         recipesVersion = (currentVersion == null) ? 1 : currentVersion + 1;
 
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault());
+                        String currentDate = sdf.format(new java.util.Date());
+
                         // Обновляем версию и временную метку
                         Map<String, Object> updates = new HashMap<>();
                         updates.put("recipes_version", recipesVersion);
-                        updates.put("last_updated", ServerValue.TIMESTAMP);
+                        updates.put("last_updated", currentDate);
 
-                        myRef.updateChildren(updates);
+                        database.getReference("recipes_metadata").updateChildren(updates);
+
+                        //myRef.child("metadata").updateChildren(updates);
                     }
 
                     @Override
@@ -1236,12 +1241,17 @@ public class AddScreen extends AppCompatActivity {
                         Integer currentVersion = snapshot.getValue(Integer.class);
                         tagsVersion = (currentVersion == null) ? 1 : currentVersion + 1;
 
+                        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault());
+                        String currentDate = sdf.format(new java.util.Date());
+
                         // Обновляем версию и временную метку
                         Map<String, Object> updates = new HashMap<>();
                         updates.put("tags_version", tagsVersion);
-                        updates.put("last_updated", ServerValue.TIMESTAMP);
+                        updates.put("last_updated", currentDate);
 
-                        myRef.updateChildren(updates);
+                        database.getReference("indices").child("metadata").updateChildren(updates);
+
+                        //myRef.updateChildren(updates);
                     }
 
                     @Override

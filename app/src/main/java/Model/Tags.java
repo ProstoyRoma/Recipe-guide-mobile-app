@@ -14,7 +14,6 @@ public class Tags {
         this.value = value;
     }
 
-    public Tags(){}
 
     public String getTagId() {
         return tagId;

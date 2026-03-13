@@ -47,15 +47,7 @@ import java.util.concurrent.Executors;
 
 import Data.DatabaseHandler;
 
-/**
- * QuestionnaireActivity
- * Сбор минимального профиля пользователя.
- * <p>
- * Требует:
- * - QuestionnaireModel (см. пример ранее)
- * - NetworkUtils.postJson(context, url, json, callback)
- * - strings.xml локализация для текстов
- */
+
 public class QuestionnaireActivity extends AppCompatActivity {
     private static final String PREFS = "app_prefs";
     private static final String KEY_QUESTIONNAIRE = "questionnaire_completed";
@@ -576,7 +568,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         }
 
 
-        boolean hasDietSelected = false;
+        boolean hasDietSelected;
         int selectedId = dietRadioGroup.getCheckedRadioButtonId();
 
         if (selectedId != -1) {
@@ -589,7 +581,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         }
 
 
-        boolean hasCuisineSelected = false;
+        boolean hasCuisineSelected;
         boolean hasOtherCuisineFilled = true; // По умолчанию true, если "Другое" не выбрано
 
         // Проверяем основные аллергены
@@ -655,7 +647,7 @@ public class QuestionnaireActivity extends AppCompatActivity {
         }
 
 
-        boolean hasSkillLevelSelected = false;
+        boolean hasSkillLevelSelected;
         int selectedIdSL = skillLevelRadioGroup.getCheckedRadioButtonId();
 
         if (selectedIdSL != -1) {
