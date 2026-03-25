@@ -163,6 +163,16 @@
     <string name="title_hint_additional_info">(необязательно)</string>
     <string name="question_diet_add_screen">Укажите, соответствует ли блюдо диетическим требованиям:</string>
     <string name="info_dialog">Укажите дополнительную информацию — это поможет при рекомендации рецепта</string>
+    <string name="filters">Фильтры</string>
+    <string name="cuisine">Кухня:</string>
+    <string name="diet">Диета:</string>
+    <string name="max_time_filter">Макс. время (мин):</string>
+    <string name="example_hint_max_time">Например: 60</string>
+    <string name="reset_filters">Сбросить</string>
+    <string name="apply_filters">Применить</string>
+    <string name="toast_reset_filters">Фильтры сброшены</string>
+    <string name="toast_applying_filters">Применяем фильтры...</string>
+    <string name="toast_applied_filters">Фильтры применены</string>
 
     <string-array name="categories_array">
         <item>Выбрать</item>
@@ -178,6 +188,202 @@
         <item>Перекус</item>
     </string-array>
 
+    <!-- Диеты -->
+    <string-array name="diets_array">
+        <item>Выберите диету</item>
+        <item>Палео-диета</item>
+        <item>Диета DASH</item>
+        <item>Кето-диета</item>
+        <item>Безглютеновая диета</item>
+        <item>Низкоуглеводная диета</item>
+        <item>Веганство</item>
+        <item>Вегетарианство</item>
+        <item>Средиземноморская диета</item>
+    </string-array>
 
+    <string-array name="diets_en">
+        <item>Select</item>
+        <item>Paleo Diet</item>
+        <item>DASH Diet</item>
+        <item>Keto Diet</item>
+        <item>Gluten-Free Diet</item>
+        <item>Low-Carb Diet</item>
+        <item>Veganism</item>
+        <item>Vegetarianism</item>
+        <item>Mediterranean Diet</item>
+    </string-array>
 
+    <string-array name="cuisines_array">
+        <item>Итальянская</item>
+        <item>Японская</item>
+        <item>Китайская</item>
+        <item>Русская</item>
+        <item>Французская</item>
+        <item>Мексиканская</item>
+        <item>Индийская</item>
+        <item>Турецкая</item>
+        <item>Греческая</item>
+        <item>Тайская</item>
+        <item>Корейская</item>
+        <item>Американская</item>
+        <item>Африканская</item>
+        <item>Испанская</item>
+        <item>Вьетнамская</item>
+        <item>Немецкая</item>
+        <item>Бразильская</item>
+        <item>Марокканская</item>
+        <item>Ливанская</item>
+        <item>Перуанская</item>
+        <item>Белорусская</item>
+        <item>Украинская</item>
+        <item>Польская</item>
+        <item>Грузинская</item>
+        <item>Армянская</item>
+        <item>Азербайджанская</item>
+        <item>Узбекская</item>
+        <item>Казахская</item>
+        <item>Татарская</item>
+        <item>Британская</item>
+        <item>Португальская</item>
+        <item>Голландская</item>
+        <item>Шведская</item>
+        <item>Норвежская</item>
+        <item>Датская</item>
+        <item>Финская</item>
+        <item>Швейцарская</item>
+        <item>Австрийская</item>
+        <item>Венгерская</item>
+        <item>Чешская</item>
+        <item>Словацкая</item>
+        <item>Болгарская</item>
+        <item>Сербская</item>
+        <item>Хорватская</item>
+        <item>Румынская</item>
+        <item>Молдавская</item>
+        <item>Литовская</item>
+        <item>Латышская</item>
+        <item>Эстонская</item>
+        <item>Индонезийская</item>
+        <item>Малайзийская</item>
+        <item>Филиппинская</item>
+        <item>Сингапурская</item>
+        <item>Тайваньская</item>
+        <item>Гонконгская</item>
+        <item>Монгольская</item>
+        <item>Тибетская</item>
+        <item>Непальская</item>
+        <item>Шри-Ланкийская</item>
+        <item>Пакистанская</item>
+        <item>Бангладешская</item>
+        <item>Иранская</item>
+        <item>Иракская</item>
+        <item>Сирийская</item>
+        <item>Иорданская</item>
+        <item>Египетская</item>
+        <item>Тунисская</item>
+        <item>Алжирская</item>
+        <item>Эфиопская</item>
+        <item>Нигерийская</item>
+        <item>Южноафриканская</item>
+        <item>Аргентинская</item>
+        <item>Чилийская</item>
+        <item>Колумбийская</item>
+        <item>Венесуэльская</item>
+        <item>Карибская</item>
+        <item>Ямайская</item>
+        <item>Кубинская</item>
+        <item>Пуэрто-риканская</item>
+        <item>Гавайская</item>
+        <item>Канадская</item>
+        <item>Австралийская</item>
+        <item>Новозеландская</item>
+        <item>Фьюжн</item>
+    </string-array>
+
+    <string-array name="cuisines_en">
+        <item>Italian</item>
+        <item>Japanese</item>
+        <item>Chinese</item>
+        <item>Russian</item>
+        <item>French</item>
+        <item>Mexican</item>
+        <item>Indian</item>
+        <item>Turkish</item>
+        <item>Greek</item>
+        <item>Thai</item>
+        <item>Korean</item>
+        <item>American</item>
+        <item>African</item>
+        <item>Spanish</item>
+        <item>Vietnamese</item>
+        <item>German</item>
+        <item>Brazilian</item>
+        <item>Moroccan</item>
+        <item>Lebanese</item>
+        <item>Peruvian</item>
+        <item>Belarusian</item>
+        <item>Ukrainian</item>
+        <item>Polish</item>
+        <item>Georgian</item>
+        <item>Armenian</item>
+        <item>Azerbaijani</item>
+        <item>Uzbek</item>
+        <item>Kazakh</item>
+        <item>Tatar</item>
+        <item>British</item>
+        <item>Portuguese</item>
+        <item>Dutch</item>
+        <item>Swedish</item>
+        <item>Norwegian</item>
+        <item>Danish</item>
+        <item>Finnish</item>
+        <item>Swiss</item>
+        <item>Austrian</item>
+        <item>Hungarian</item>
+        <item>Czech</item>
+        <item>Slovak</item>
+        <item>Bulgarian</item>
+        <item>Serbian</item>
+        <item>Croatian</item>
+        <item>Romanian</item>
+        <item>Moldovan</item>
+        <item>Lithuanian</item>
+        <item>Latvian</item>
+        <item>Estonian</item>
+        <item>Indonesian</item>
+        <item>Malaysian</item>
+        <item>Filipino</item>
+        <item>Singaporean</item>
+        <item>Taiwanese</item>
+        <item>Hong Kong</item>
+        <item>Mongolian</item>
+        <item>Tibetan</item>
+        <item>Nepalese</item>
+        <item>Sri Lankan</item>
+        <item>Pakistani</item>
+        <item>Bangladeshi</item>
+        <item>Iranian</item>
+        <item>Iraqi</item>
+        <item>Syrian</item>
+        <item>Jordanian</item>
+        <item>Egyptian</item>
+        <item>Tunisian</item>
+        <item>Algerian</item>
+        <item>Ethiopian</item>
+        <item>Nigerian</item>
+        <item>South African</item>
+        <item>Argentinian</item>
+        <item>Chilean</item>
+        <item>Colombian</item>
+        <item>Venezuelan</item>
+        <item>Caribbean</item>
+        <item>Jamaican</item>
+        <item>Cuban</item>
+        <item>Puerto Rican</item>
+        <item>Hawaiian</item>
+        <item>Canadian</item>
+        <item>Australian</item>
+        <item>New Zealand</item>
+        <item>Fusion</item>
+    </string-array>
 </resources>

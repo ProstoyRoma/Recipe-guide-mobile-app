@@ -33,7 +33,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import Model.Event;
 import Model.Recipe;
@@ -215,7 +217,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         }
         ArrayList<Recipe> recipeList = new ArrayList<>();
         String selectAllRecipe = "SELECT " + Util.KEY_ID + ", " + Util.KEY_NAME_EN + ", " + Util.KEY_NAME + ", " + Util.KEY_IMAGE + ", " + Util.KEY_COOKINGTIME + ", "
-                + Util.KEY_INGREDIENT_EN + ", " + Util.KEY_INGREDIENT + " FROM " + Util.TABLE_NAME;
+                + Util.KEY_INGREDIENT_EN + ", " + Util.KEY_INGREDIENT + ", " + Util.KEY_CATEGORY + " FROM " + Util.TABLE_NAME;
         Cursor cursor = myDataBase.rawQuery(selectAllRecipe, null);
         if (cursor.moveToFirst()) {
             do {
@@ -227,6 +229,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
                 recipe.setCookingTime(Integer.parseInt(cursor.getString(4)));
                 recipe.setIngredient_en(cursor.getString(5));
                 recipe.setIngredient(cursor.getString(6));
+                recipe.setCategory(Integer.parseInt(cursor.getString(7)));
 
                 recipeList.add(recipe);
             } while (cursor.moveToNext());
@@ -269,6 +272,67 @@ public class DatabaseHandler extends SQLiteAssetHelper {
             // don't close db (SQLiteAssetHelper manages)
         }
         return out;
+    }
+    public Set<String> getAllRecipeIdsForCuisines(Set<String> selectedCuisines) {
+        Set<String> recipeIds = new HashSet<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Формируем запрос: SELECT recipeId FROM tags WHERE key = 'cuisine' AND value IN (список кухонь)
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT recipeId FROM tags WHERE key = 'cuisine' AND value IN (");
+
+        for (int i = 0; i < selectedCuisines.size(); i++) {
+            query.append("?");
+            if (i < selectedCuisines.size() - 1) {
+                query.append(",");
+            }
+        }
+        query.append(")");
+
+        String[] args = selectedCuisines.toArray(new String[0]);
+
+        Cursor cursor = db.rawQuery(query.toString(), args);
+
+        while (cursor.moveToNext()) {
+            String recipeId = cursor.getString(0);
+            recipeIds.add(recipeId);
+        }
+
+        cursor.close();
+        db.close();
+
+        return recipeIds;
+    }
+
+    public Set<String> getAllRecipeIdsForDiets(Set<String> selectedDiets) {
+        Set<String> recipeIds = new HashSet<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Формируем запрос: SELECT recipeId FROM tags WHERE key = 'cuisine' AND value IN (список кухонь)
+        StringBuilder query = new StringBuilder();
+        query.append("SELECT recipeId FROM tags WHERE key = 'diet' AND value IN (");
+
+        for (int i = 0; i < selectedDiets.size(); i++) {
+            query.append("?");
+            if (i < selectedDiets.size() - 1) {
+                query.append(",");
+            }
+        }
+        query.append(")");
+
+        String[] args = selectedDiets.toArray(new String[0]);
+
+        Cursor cursor = db.rawQuery(query.toString(), args);
+
+        while (cursor.moveToNext()) {
+            String recipeId = cursor.getString(0);
+            recipeIds.add(recipeId);
+        }
+
+        cursor.close();
+        db.close();
+
+        return recipeIds;
     }
 
     public ArrayList<Recipe> getLastRecommendedRecipe(Context context) {

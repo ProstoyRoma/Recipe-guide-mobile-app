@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:theme="@style/AppTheme.MaterialChipTheme"
+    android:elevation="8dp"
+    android:paddingBottom="0dp"
+    android:paddingHorizontal="10dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/filters"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Категории (мультивыбор) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/category"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"/>
+
+    <Spinner
+        android:id="@+id/spinner_category"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/spinner_bg_with_arrow"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <!-- Контейнер для выбранных категорий -->
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+        <LinearLayout
+            android:id="@+id/selected_categories_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:weightSum="1" />
+    </HorizontalScrollView>
+
+    <!-- Кухня (автодополнение + мультивыбор) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/cuisine"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
+
+    <AutoCompleteTextView
+        android:id="@+id/actv_cuisine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:padding="10dp"
+        android:textSize="14sp"
+        android:hint="@string/error_hint_other_cuisine"
+        android:completionThreshold="1"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <!-- Контейнер для выбранных кухонь -->
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+        <LinearLayout
+            android:id="@+id/selected_cuisines_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:weightSum="1" />
+    </HorizontalScrollView>
+    <!-- Диета (мультивыбор) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/diet"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
+
+    <Spinner
+        android:id="@+id/spinner_diet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/spinner_bg_with_arrow"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <!-- Контейнер для выбранных диет -->
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+        <LinearLayout
+            android:id="@+id/selected_diets_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:weightSum="1" />
+    </HorizontalScrollView>
+
+    <!-- Время приготовления -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/max_time_filter"
+            android:paddingStart="0dp"
+            android:padding="10dp"
+            android:textStyle="bold"
+            />
+
+        <EditText
+            android:id="@+id/et_max_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/example_hint_max_time"
+            android:inputType="number"
+            android:padding="8dp"
+            android:textSize="14sp"
+            tools:ignore="TouchTargetSizeCheck" />
+
+    </LinearLayout>
+
+    <!-- Кнопки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="7dp"
+            android:background="@drawable/rounded_button_empty"
+            android:text="@string/reset_filters"
+            />
+
+        <View
+            android:layout_width="20dp"
+            android:layout_height="match_parent">
+
+        </View>
+
+        <Button
+            android:id="@+id/btn_apply"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:padding="7dp"
+            android:text="@string/apply_filters" />
+
+
+    </LinearLayout>
+
+</LinearLayout>

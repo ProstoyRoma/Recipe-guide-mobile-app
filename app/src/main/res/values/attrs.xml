@@ -18,4 +18,5 @@
     <attr name="buttonDislike" format="reference"/>
     <attr name="buttonMore" format="reference"/>
     <attr name="infoDialog" format="reference"/>
+    <attr name="buttonFilter" format="reference"/>
 </resources>

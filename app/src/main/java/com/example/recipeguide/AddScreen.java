@@ -1121,7 +1121,7 @@ public class AddScreen extends AppCompatActivity {
         Log.d("Translation", "Оригинал: " + translated[0]);
 
         databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), "create", recipeId, System.currentTimeMillis());
-//ДОБАВИТЬ КАТЕГОРИИ!!!
+
         Recipe recipe = new Recipe(recipeId, translated[0], translated[3], photoFileName, preparationTime, translated[2], translated[5], translated[1], translated[4], 1, 0, spinner.getSelectedItemPosition() - 1, null, null);
 
         databaseHandler.addRecipe(recipe);

@@ -16,22 +16,65 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <SearchView
-        android:id="@+id/search_field"
+    <!-- Контейнер для SearchView и кнопки фильтра -->
+    <LinearLayout
+        android:id="@+id/search_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:background="?android:attr/colorPrimary"
-        android:clickable="true"
-        android:ems="10"
-        android:focusable="true"
-        android:hint="@string/search"
-        android:iconifiedByDefault="false"
-        android:inputType="text"
-        android:textSize="20dp"
+
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ad_container_view" />
+        app:layout_constraintTop_toBottomOf="@id/ad_container_view">
+        <SearchView
+            android:id="@+id/search_field"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?android:attr/colorPrimary"
+            android:clickable="true"
+            android:ems="10"
+            android:layout_marginEnd="3dp"
+            android:focusable="true"
+            android:hint="@string/search"
+            android:iconifiedByDefault="false"
+            android:inputType="text"
+            android:textSize="20dp"
+            />
+
+        <ImageButton
+            android:id="@+id/btn_filter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:backgroundTint="#00FFFFFF"
+            android:src="?attr/buttonFilter"
+            android:contentDescription="Фильтр"
+            android:layout_marginEnd="7dp"/>
+
+    </LinearLayout>
+
+    <!-- Контейнер для выпадающего фильтра (изначально скрыт) -->
+    <FrameLayout
+        android:id="@+id/filter_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search_container">
+
+        <include
+            android:id="@+id/filter_view"
+            layout="@layout/dialog_filter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </FrameLayout>
 
     <ListView
         android:id="@+id/listView"
@@ -44,7 +87,7 @@
         app:layout_constraintBottom_toTopOf="@+id/linearLayout3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/search_field" />
+        app:layout_constraintTop_toBottomOf="@id/filter_container" />
 
 
     <LinearLayout
