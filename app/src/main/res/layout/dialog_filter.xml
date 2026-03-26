@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:theme="@style/AppTheme.MaterialChipTheme"
     android:elevation="8dp"
     android:paddingBottom="0dp"
     android:paddingHorizontal="10dp">
@@ -24,7 +23,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/category"
-        android:textSize="14sp"
         android:textStyle="bold"
         android:layout_marginTop="4dp"/>
 
@@ -32,8 +30,8 @@
         android:id="@+id/spinner_category"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="5dp"
         android:layout_marginTop="4dp"
+        android:popupBackground="@color/background_add_screen"
         android:background="@drawable/spinner_bg_with_arrow"
         tools:ignore="TouchTargetSizeCheck" />
 
@@ -98,8 +96,8 @@
         android:id="@+id/spinner_diet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="5dp"
         android:layout_marginTop="4dp"
+        android:popupBackground="@color/background_add_screen"
         android:background="@drawable/spinner_bg_with_arrow"
         tools:ignore="TouchTargetSizeCheck" />
 

@@ -11,8 +11,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -208,12 +211,32 @@ public class SearchActivity extends AppCompatActivity {
             initFilterViews();
         }
         updateContainersVisibility();
+        filterContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_down));
         filterContainer.setVisibility(View.VISIBLE);
         isFilterVisible = true;
     }
 
     private void hideFilterPanel() {
-        filterContainer.setVisibility(View.GONE);
+        Animation slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
+        slideUp.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                // Анимация началась
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                // Скрываем контейнер только после завершения анимации
+                filterContainer.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+                // Не используется
+            }
+        });
+
+        filterContainer.startAnimation(slideUp);
         isFilterVisible = false;
     }
 
@@ -232,9 +255,35 @@ public class SearchActivity extends AppCompatActivity {
         selectedDietsContainer = filterView.findViewById(R.id.selected_diets_container);
 
         // Настройка спиннера для категорий
-        categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, allCategories);
-        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categoryAdapter = new ArrayAdapter<String>(
+                this,
+                R.layout.spinner_item,
+                R.id.spinner_item_tv,
+                allCategories
+        ) {
+            @Override
+            public boolean isEnabled(int position) {
+                // запрещаем выбор заглушки
+                return position != 0;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                if (position == 0) {
+                    // можно затемнить хинт, но оставляем основной цвет
+                    tv.setTextColor(getResources().getColor(R.color.black));
+                } else {
+                    tv.setTextColor(getResources().getColor(R.color.black));
+                }
+                return view;
+            }
+        };
+
+        categoryAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
+        spinnerCategory.setSelection(0, false);  // показываем «Выбрать» без вызова слушателя
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -263,9 +312,34 @@ public class SearchActivity extends AppCompatActivity {
             dietMap.put(allDiets[i], englishDiets[i]);
         }
         // Настройка спиннера для диет
-        dietAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, allDiets);
-        dietAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dietAdapter = new ArrayAdapter<String>(
+                this,
+                R.layout.spinner_item,
+                R.id.spinner_item_tv,
+                allDiets
+        ) {
+            @Override
+            public boolean isEnabled(int position) {
+                // запрещаем выбор заглушки
+                return position != 0;
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) view;
+                if (position == 0) {
+                    // можно затемнить хинт, но оставляем основной цвет
+                    tv.setTextColor(getResources().getColor(R.color.black));
+                } else {
+                    tv.setTextColor(getResources().getColor(R.color.black));
+                }
+                return view;
+            }
+        };
+        dietAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         spinnerDiet.setAdapter(dietAdapter);
+        spinnerDiet.setSelection(0, false);  // показываем «Выбрать» без вызова слушателя
         spinnerDiet.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

@@ -51,6 +51,8 @@
         <item name="checkboxStyle">@style/CustomCheckBox</item>
         <item name="radioButtonStyle">@style/CustomRadioButton</item>
         <item name="chipStyle">@style/CustomChip</item>
+        <item name="spinnerDropDownItemStyle">@style/MySpinnerDropDownItemStyle</item>
+
     </style>
 
     <style name="CustomButton">
