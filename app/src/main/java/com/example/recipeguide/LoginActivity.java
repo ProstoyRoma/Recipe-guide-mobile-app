@@ -314,24 +314,25 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void saveMyRecipeToFB(){
+    private void saveMyRecipeToFB() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
             return;
         }
         SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
         String dishJson = prefs.getString("dish_list", null);
-        if(dishJson == null){
+        if (dishJson == null) {
             return;
         }
 
         Gson gson = new Gson();
-        ArrayList<String> dishes = gson.fromJson(dishJson, new TypeToken<ArrayList<String>>(){}.getType());
+        ArrayList<String> dishes = gson.fromJson(dishJson, new TypeToken<ArrayList<String>>() {
+        }.getType());
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("my_recipes");
 
-        for(String dish: dishes){
+        for (String dish : dishes) {
             myRef.child(dish).setValue(true);
         }
 
@@ -483,6 +484,7 @@ public class LoginActivity extends AppCompatActivity {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("users").child(user.getUid()).child("my_recipes");
+        DatabaseReference recipesRef = database.getReference("recipes");
 
         ArrayList<String> idList = new ArrayList<>();
 
@@ -496,24 +498,36 @@ public class LoginActivity extends AppCompatActivity {
 
                         // 🔥 Проверяем, есть ли рецепт в SQLite
                         if (!dbHelper.myRecipeInSQLite(recipeId)) {
-                            Recipe recipe = new Recipe();
-                            recipe.setId(recipeId);
-                            recipe.setName(child.child("name").getValue(String.class));
-                            recipe.setName_en(child.child("name_en").getValue(String.class));
-                            recipe.setImage(child.child("image").getValue(String.class));
-                            recipe.setCookingTime(child.child("cookingTime").getValue(Integer.class));
-                            recipe.setCategory(child.child("cookingTime").getValue(Integer.class));
-                            recipe.setIngredient(child.child("ingredient").getValue(String.class));
-                            recipe.setIngredient_en(child.child("ingredient_en").getValue(String.class));
-                            recipe.setRecipe(child.child("recipe").getValue(String.class));
-                            recipe.setRecipe_en(child.child("recipe_en").getValue(String.class));
-                            recipe.setIngredient_parsed(child.child("ingredients_parsed").getValue(String.class));
-                            String ingVec = child.child("ingredient_vectors").getValue(String.class);
-                            recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
-                            recipe.setIsFavorite(1);
-                            recipe.setIsCook(0);
+                            recipesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot recipeSnapshot) {
+                                    if (recipeSnapshot.exists()) {
+                                        Recipe recipe = new Recipe();
+                                        recipe.setId(recipeId);
+                                        recipe.setName(recipeSnapshot.child("name").getValue(String.class));
+                                        recipe.setName_en(recipeSnapshot.child("name_en").getValue(String.class));
+                                        recipe.setImage(recipeSnapshot.child("image").getValue(String.class));
+                                        recipe.setCookingTime(recipeSnapshot.child("cookingTime").getValue(Integer.class));
+                                        recipe.setCategory(recipeSnapshot.child("cookingTime").getValue(Integer.class));
+                                        recipe.setIngredient(recipeSnapshot.child("ingredient").getValue(String.class));
+                                        recipe.setIngredient_en(recipeSnapshot.child("ingredient_en").getValue(String.class));
+                                        recipe.setRecipe(recipeSnapshot.child("recipe").getValue(String.class));
+                                        recipe.setRecipe_en(recipeSnapshot.child("recipe_en").getValue(String.class));
+                                        recipe.setIngredient_parsed(recipeSnapshot.child("ingredients_parsed").getValue(String.class));
+                                        String ingVec = recipeSnapshot.child("ingredient_vectors").getValue(String.class);
+                                        recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
+                                        recipe.setIsFavorite(1);
+                                        recipe.setIsCook(0);
 
-                            dbHelper.addRecipe(recipe); // ✅ Сохраняем в SQLite
+                                        dbHelper.addRecipe(recipe); // ✅ Сохраняем в SQLite
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Log.e("Firebase", "Ошибка загрузки рецепта: " + recipeId, error.toException());
+                                }
+                            });
                         }
                         // Если значение узла boolean true или строка "true" — считаем, что рецепт есть в списке
                         Object val = child.getValue();
@@ -529,16 +543,16 @@ public class LoginActivity extends AppCompatActivity {
                         if (enabled) {
                             idList.add(recipeId);
                         }
+
+                        // Сохраняем список id в SharedPreferences как JSON (опционально)
+                        SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        Gson gson = new Gson();
+                        String json = gson.toJson(idList);
+                        editor.putString("dish_list", json);
+                        editor.apply();
+
                     }
-
-                    // Сохраняем список id в SharedPreferences как JSON (опционально)
-                    SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    Gson gson = new Gson();
-                    String json = gson.toJson(idList);
-                    editor.putString("dish_list", json);
-                    editor.apply();
-
                     if (callback != null) callback.onRecipesLoaded(idList);
                 } catch (Exception e) {
                     if (callback != null)
@@ -546,6 +560,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 }
             }
+
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
