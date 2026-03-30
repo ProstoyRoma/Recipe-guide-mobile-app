@@ -2,6 +2,7 @@ package com.example.recipeguide;
 
 
 import android.animation.ValueAnimator;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -70,6 +71,7 @@ public class ActivityProfile extends AppCompatActivity {
     private FirebaseAuth mAuth;
     FirebaseDatabase database;
     DatabaseReference myRef;
+    DatabaseHandler databaseHandler;
     Uri imageUri;
     SharedPreferences prefs ;
     SharedPreferences.Editor editor;
@@ -79,11 +81,13 @@ public class ActivityProfile extends AppCompatActivity {
     private View underline;
 
 
-    private ArrayList<Recipe> dishList = new ArrayList<>();      // заполняйте данными
+    public ArrayList<Recipe> dishList = new ArrayList<>();      // заполняйте данными
     private ArrayList <Recipe> cookList = new ArrayList<>();  // заполняйте данными
 
-    private DishAdapter adapterMyRecipes;
-    private DishAdapter adapterCook;
+    //private DishAdapter adapterMyRecipes;
+    //private DishAdapter adapterCook;
+    private ProfileAdapter adapterMyRecipes;
+    private ProfileAdapter adapterCook;
     private int activeTab = 0; // 0 = myRecipes, 1 = cooked
 
     @Override
@@ -104,7 +108,7 @@ public class ActivityProfile extends AppCompatActivity {
             return insets;
         });
 
-        DatabaseHandler databaseHandler = new DatabaseHandler(this);
+        databaseHandler = new DatabaseHandler(this);
 
         prefs = getSharedPreferences("MODE", Context.MODE_PRIVATE);
         editor = prefs.edit();
@@ -179,8 +183,29 @@ public class ActivityProfile extends AppCompatActivity {
                 finish();
             }
         });
-        adapterMyRecipes = new DishAdapter(this, dishList);
-        adapterCook = new DishAdapter(this, cookList);
+
+        //adapterMyRecipes = new DishAdapter(this, dishList);
+        //adapterCook = new DishAdapter(this, cookList);
+        adapterMyRecipes = new ProfileAdapter(this, dishList, 1);
+        adapterCook = new ProfileAdapter(this, cookList, 0);
+        // Устанавливаем слушатель для адаптера "Мои рецепты"
+        adapterMyRecipes.setOnRecipeActionListener(new ProfileAdapter.OnRecipeActionListener() {
+            @Override
+            public void onEdit(Recipe recipe) {
+                // Переход на экран редактирования
+                Intent intent = new Intent(ActivityProfile.this, AddScreen.class);
+                intent.putExtra("recipe_id", recipe.getId());
+                intent.putExtra("is_edit", true);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onDelete(Recipe recipe, ArrayList<Recipe> dishes) {
+                // Показываем диалог подтверждения удаления
+                showDeleteConfirmationDialog(recipe, dishes);
+            }
+        });
+
         updateList(adapterMyRecipes);
 
 
@@ -239,8 +264,94 @@ public class ActivityProfile extends AppCompatActivity {
         // анимируем underline
         moveUnderlineToTab(tabIndex, true);
     }
+    private void showDeleteConfirmationDialog(Recipe recipe, ArrayList<Recipe> dishes) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.delete_dialog)
+                .setMessage(getString(R.string.delete_message)+ " \"" +
+                        (prefs.getBoolean("language", false) ? recipe.getName() : recipe.getName_en()) +
+                        "\"?")
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    deleteRecipe(recipe, dishes);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
 
-    private void updateList( DishAdapter adapter) {
+    /**
+     * Удаляет рецепт из базы данных и обновляет список
+     */
+    private void deleteRecipe(Recipe recipe, ArrayList<Recipe> dishes) {
+
+        // Удаляем из списка
+        dishes.remove(recipe);
+
+        // Обновляем адаптер, если он активен
+        if (activeTab == 0) {
+            adapterMyRecipes.updateData(dishes);
+        }
+
+        // Обновляем SharedPreferences
+        Gson gson = new Gson();
+        ArrayList<String> recipeIds = new ArrayList<>();
+        for (Recipe r : dishes) {
+            recipeIds.add(r.getId());
+        }
+        editor.putString("dish_list", gson.toJson(recipeIds));
+        editor.apply();
+
+        dishList = dishes;
+        // Показываем уведомление об успешном удалении
+        Toast.makeText(this, R.string.toast_recipe_deleted, Toast.LENGTH_SHORT).show();
+
+        // Если есть интернет, удаляем из Firebase
+        deleteFromDB(recipe.getId());
+
+    }
+
+    /**
+     * Удаляет рецепт из Firebase
+     */
+    private void deleteFromDB(String recipeId) {
+        databaseHandler.deleteRecipe(recipeId);
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("users");
+        myRef.child(user.getUid()).child("my_recipes").child(recipeId).removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("ActivityProfile", "Рецепт удалён из Firebase: " + recipeId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ActivityProfile", "Ошибка удаления из Firebase", e);
+                });
+
+
+
+        myRef = database.getReference("recipes");
+        myRef.child(recipeId).removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("ActivityProfile", "Рецепт удалён из Firebase: " + recipeId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ActivityProfile", "Ошибка удаления из Firebase", e);
+                });
+
+        DatabaseReference indicesRef = FirebaseDatabase.getInstance().getReference("indices");
+
+        String cuisine = databaseHandler.getCuisineByRecipeId(recipeId);
+        if (cuisine != null && !cuisine.isEmpty()) {
+            indicesRef.child("by_cuisine").child(cuisine).child(recipeId).removeValue();
+        }
+
+        // Удаляем из индексов по диетам
+        List<String> diets = databaseHandler.getDietsByRecipeId(recipeId);
+        if (diets != null) {
+            for (String diet : diets) {
+                indicesRef.child("by_diet").child(diet).child(recipeId).removeValue();
+            }
+        }
+    }
+    private void updateList( ProfileAdapter adapter) {
         adapter.clear();
         user_recipes_list.setAdapter(adapter);
         adapter.notifyDataSetChanged();

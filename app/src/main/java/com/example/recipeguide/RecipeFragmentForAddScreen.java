@@ -18,10 +18,14 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import java.util.regex.Pattern;
+
 public class RecipeFragmentForAddScreen extends Fragment {
 
     private EditText editTextRecipe;
     private ColorStateList currentTint;
+    private boolean isViewCreated = false;
+    private String pendingRecipeText = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -35,6 +39,19 @@ public class RecipeFragmentForAddScreen extends Fragment {
             editTextRecipe.setBackgroundTintList(currentTint);
         }
 
+        setupTextWatcher();
+
+        isViewCreated = true;
+
+        // Если есть отложенный текст для редактирования, устанавливаем его
+        if (pendingRecipeText != null) {
+            setRecipeText(pendingRecipeText);
+            pendingRecipeText = null;
+        }
+        return view;
+    }
+
+    private void setupTextWatcher() {
         editTextRecipe.addTextChangedListener(new TextWatcher() {
             private boolean lock = false;
             private int lastSelection = 0;
@@ -126,8 +143,87 @@ public class RecipeFragmentForAddScreen extends Fragment {
 
             }
         });
+    }
 
-        return view;
+    /**
+     * Устанавливает текст рецепта в нужном формате (с нумерацией)
+     * @param recipeText текст рецепта (может быть с нумерацией или без)
+     */
+    public void setRecipeText(String recipeText) {
+        if (editTextRecipe == null || recipeText == null || recipeText.isEmpty()) {
+            if (editTextRecipe != null) {
+                editTextRecipe.setText("");
+            }
+            return;
+        }
+
+        // Нормализуем переводы строк (сохраняем одиночные переводы)
+        String normalized = recipeText.replace("\r\n", "\n").replace("\r", "\n").trim();
+        if (normalized.isEmpty()) editTextRecipe.setText("");
+
+        // Разбиваем по одиночным переводам строки — каждый элемент parts соответствует одной строке/абзацу
+        String[] parts = normalized.split("\\n", -1);
+
+        StringBuilder out = new StringBuilder();
+        int idx = 1;
+        // Регулярка для определения префикса "число. " с возможными ведущими пробелами
+        Pattern numberedPrefix = Pattern.compile("^\\s*\\d+\\.\\s+.*", Pattern.DOTALL);
+
+        for (String p : parts) {
+            String paragraphRaw = p; // сохраняем исходный (чтобы корректно читать начало абзаца)
+            String paragraphTrimmed = paragraphRaw.trim();
+            if (paragraphTrimmed.isEmpty()) continue;
+
+            if (out.length() > 0) out.append("\n");
+
+            // Если строка уже начинается с "N. " — сохраняем её как есть (без повторной нумерации)
+            if (numberedPrefix.matcher(paragraphRaw).matches()) {
+                // добавляем исходный параграф (с сохранением пробелов внутри, но убираем ведущие/замыкающие переносы)
+                out.append(paragraphRaw.trim());
+            } else {
+                // иначе добавляем номер и остальной текст (без лишних внешних пробелов)
+                out.append(idx).append(".  ").append(paragraphTrimmed);
+            }
+            idx++;
+        }
+
+        // Устанавливаем текст
+        editTextRecipe.setText(out.toString());
+
+    }
+
+    public void setEditMode(String recipeText) {
+        if (isViewCreated && editTextRecipe != null) {
+            // View уже создан, устанавливаем текст сразу
+            setRecipeText(recipeText);
+        } else {
+            // View ещё не создан, сохраняем текст для установки позже
+            pendingRecipeText = recipeText;
+        }
+    }
+
+    /**
+     * Устанавливает текст рецепта без изменения формата (как есть)
+     * @param recipeText текст рецепта
+     */
+    public void setRecipeTextRaw(String recipeText) {
+        if (editTextRecipe != null) {
+            if (recipeText != null) {
+                editTextRecipe.setText(recipeText);
+            } else {
+                editTextRecipe.setText("");
+            }
+            editTextRecipe.setSelection(0);
+        }
+    }
+
+    /**
+     * Очищает поле ввода рецепта
+     */
+    public void clearRecipeText() {
+        if (editTextRecipe != null) {
+            editTextRecipe.setText("");
+        }
     }
     /** Если курсор попал внутри префикса "N. ", перемещаем его в конец префикса */
     private void ensureCursorOutsidePrefix(EditText et) {

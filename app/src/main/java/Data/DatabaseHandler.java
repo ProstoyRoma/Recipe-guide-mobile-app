@@ -335,6 +335,64 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         return recipeIds;
     }
 
+    public String getCuisineByRecipeId(String recipeId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String cuisine = null;
+
+        String query = "SELECT " + Util.KEY_VALUE + " FROM " + Util.TABLE_NAME_TAGS +
+                " WHERE " + Util.KEY_RECIPE_ID + " = ? AND `" + Util.KEY_KEY + "` = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{recipeId, "cuisine"});
+
+        try {
+            if (cursor.moveToFirst()) {
+                cuisine = cursor.getString(0);
+                deleteTagsByRecipeId(recipeId);
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHandler", "Ошибка получения кухни", e);
+        } finally {
+            cursor.close();
+            db.close();
+        }
+
+        return cuisine;
+    }
+
+    public List<String> getDietsByRecipeId(String recipeId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<String> diets = new ArrayList<>();
+
+        String query = "SELECT " + Util.KEY_VALUE + " FROM " + Util.TABLE_NAME_TAGS +
+                " WHERE " + Util.KEY_RECIPE_ID + " = ? AND `" + Util.KEY_KEY + "` = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{recipeId, "diet"});
+
+        try {
+            while (cursor.moveToNext()) {
+                diets.add(cursor.getString(0));
+                deleteTagsByRecipeId(recipeId);
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHandler", "Ошибка получения диет", e);
+        } finally {
+            cursor.close();
+            db.close();
+        }
+
+        return diets;
+    }
+    public void deleteTagsByRecipeId(String recipeId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        try {
+            db.delete(Util.TABLE_NAME_TAGS, Util.KEY_RECIPE_ID + " = ?", new String[]{recipeId});
+        } catch (Exception e) {
+            Log.e("DatabaseHandler", "Ошибка удаления тегов", e);
+        } finally {
+            db.close();
+        }
+    }
     public ArrayList<Recipe> getLastRecommendedRecipe(Context context) {
         SharedPreferences preferences = context.getSharedPreferences("RandomItems", context.MODE_PRIVATE);
 
@@ -680,10 +738,10 @@ public class DatabaseHandler extends SQLiteAssetHelper {
     }
 
     //Удаляет конкретный рецепт
-    public void deleteRecipe(Recipe recipe) {
+    public void deleteRecipe(String recipeId) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        db.delete(Util.TABLE_NAME, Util.KEY_ID + "=?", new String[]{String.valueOf(recipe.getId())});
+        db.delete(Util.TABLE_NAME, Util.KEY_ID + "=?", new String[]{recipeId});
         db.close();
     }
 

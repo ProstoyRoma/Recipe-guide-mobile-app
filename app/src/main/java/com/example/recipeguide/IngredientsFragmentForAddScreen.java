@@ -52,6 +52,8 @@ public class IngredientsFragmentForAddScreen extends Fragment {
     }};
     private final List<String> measures = Arrays.asList("г", "кг", "мл", "л", "шт", "ч.л.", "ст.л.", "по вкусу");
     private static final String KEY_ROWS = "ingredients_rows"; // список строк вида "name|qty|measure"
+    private boolean isEditMode = false;
+    private String pendingIngredientsData = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
@@ -59,8 +61,14 @@ public class IngredientsFragmentForAddScreen extends Fragment {
 
         container = view.findViewById(R.id.ingredients_container);
 
-        addIngredientRow();
-
+// Если есть отложенные данные для редактирования, загружаем их
+        if (pendingIngredientsData != null && !pendingIngredientsData.isEmpty()) {
+            setIngredientsData(pendingIngredientsData);
+            pendingIngredientsData = null;
+        } else {
+            // Добавляем одну пустую строку
+            addIngredientRow();
+        }
         // Если есть сохранённое состояние — восстановим
         /*if (savedInstanceState != null && savedInstanceState.containsKey(KEY_ROWS)) {
             ArrayList<String> rows = savedInstanceState.getStringArrayList(KEY_ROWS);
@@ -115,8 +123,73 @@ public class IngredientsFragmentForAddScreen extends Fragment {
         }
         return rows;
     }
+    public void setIngredientsData(String ingredientsData) {
+        if (ingredientsData == null || ingredientsData.isEmpty()) {
+            // Если данных нет, добавляем одну пустую строку
+            if (container != null) {
+                addIngredientRow();
+            } else {
+                pendingIngredientsData = "";
+            }
+            return;
+        }
 
+        // Если контейнер ещё не создан, сохраняем данные для последующей установки
+        if (container == null) {
+            pendingIngredientsData = ingredientsData;
+            return;
+        }
+
+        // Очищаем существующие строки
+        container.removeAllViews();
+
+        // Разбиваем на строки
+        String[] lines = ingredientsData.split("\n");
+
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            if (trimmedLine.isEmpty()) continue;
+
+            // Удаляем нумерацию в начале строки (например "1. " или "2.")
+            String content = trimmedLine.replaceFirst("^\\d+\\.\\s*", "");
+
+            // Разбиваем по формату "название|количество|мера"
+            String[] parts = content.split("\\|", -1);
+
+            String name = parts.length > 0 ? parts[0].trim() : "";
+            String quantity = parts.length > 1 ? parts[1].trim() : "";
+            String measure = parts.length > 2 ? parts[2].trim() : "";
+
+            // Добавляем строку с заполненными данными
+            addIngredientRow(name, quantity, measure);
+        }
+
+        // Если после парсинга не добавилось ни одной строки, добавляем пустую
+        if (container.getChildCount() == 0) {
+            addIngredientRow();
+        }
+    }
+
+    /**
+     * Устанавливает фрагмент в режим редактирования
+     * @param ingredientsData данные ингредиентов
+     */
+    public void setEditMode(String ingredientsData) {
+        isEditMode = true;
+        if (container != null) {
+            setIngredientsData(ingredientsData);
+        } else {
+            pendingIngredientsData = ingredientsData;
+        }
+    }
+
+    /**
+     * Добавляет новую строку с ингредиентом
+     */
     public void addIngredientRow() {
+        addIngredientRow("", "", "");
+    }
+    public void addIngredientRow(String name, String quantity, String measure) {
         View row = getLayoutInflater().inflate(
                 R.layout.item_ingredient_row, container, false
         );
@@ -174,6 +247,15 @@ public class IngredientsFragmentForAddScreen extends Fragment {
         /*if (namePrefill != null) ingInput.setText(namePrefill);
         if (qtyPrefill != null) qtyInput.setText(qtyPrefill);
         if (mesPrefill != null) mesInput.setText(mesPrefill);*/
+        if (name != null && !name.isEmpty()) {
+            ingInput.setText(name);
+        }
+        if (quantity != null && !quantity.isEmpty()) {
+            qtyInput.setText(quantity);
+        }
+        if (measure != null && !measure.isEmpty()) {
+            mesInput.setText(measure);
+        }
 
         // helper: обновляет видимость/состояние поля quantity в зависимости от меры
         Runnable applyMeasureBehavior = () -> {

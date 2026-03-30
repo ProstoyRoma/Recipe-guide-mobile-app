@@ -172,6 +172,11 @@
     <string name="toast_reset_filters">Filters reset</string>
     <string name="toast_applying_filters">Applying filters...</string>
     <string name="toast_applied_filters">Filters applied</string>
+    <string name="delete_dialog">Deleting a recipe</string>
+    <string name="delete_message">Are you sure you want to delete the recipe</string>
+    <string name="delete">Delete</string>
+    <string name="toast_recipe_deleted">Recipe removed</string>
+    <string name="update">Update</string>
 
     <string-array name="categories_array">
         <item>Select</item>

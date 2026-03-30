@@ -173,6 +173,11 @@
     <string name="toast_reset_filters">Фильтры сброшены</string>
     <string name="toast_applying_filters">Применяем фильтры...</string>
     <string name="toast_applied_filters">Фильтры применены</string>
+    <string name="delete_dialog">Удаление рецепта</string>
+    <string name="delete_message">Вы действительно хотите удалить рецепт</string>
+    <string name="delete">Удалить</string>
+    <string name="toast_recipe_deleted">Рецепт удалён</string>
+    <string name="update">Обновить</string>
 
     <string-array name="categories_array">
         <item>Выбрать</item>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <ImageView
+        android:id="@+id/recipe_image"
+        android:layout_width="145dp"
+        android:layout_height="125dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/rounded_corners_image"
+        android:backgroundTint="#00FFFFFF"
+        android:clipToOutline="true"
+        android:scaleType="centerCrop"
+        tools:srcCompat="@drawable/stub" />
+
+    <TextView
+        android:id="@+id/recipe_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@+id/recipe_image"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="5dp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        tools:text="Пельмени с укропом" />
+
+    <TextView
+        android:id="@+id/recipe_cooking_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/recipe_name"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="18sp"
+        android:layout_marginTop="5dp"
+        android:layout_toEndOf="@+id/recipe_image"
+        android:autoSizeMaxTextSize="15sp"
+        android:autoSizeTextType="uniform"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textSize="15sp"
+        tools:text="Время приготовления\n" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout_button_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/recipe_cooking_time"
+        android:layout_alignBottom="@+id/recipe_image"
+        android:layout_alignParentEnd="true"
+        android:layout_toEndOf="@+id/recipe_image"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/delete"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:contentDescription="@string/app_name"
+            android:text="Удалить"
+            android:textAllCaps="false"
+            android:textColor="@color/red"
+            android:background="@android:color/transparent"
+            android:textStyle="bold"
+            tools:ignore="TouchTargetSizeCheck" />
+
+        <Button
+            android:id="@+id/edit"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:layout_weight="1"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="5dp"
+            android:contentDescription="@string/app_name"
+            android:text="Редактировать"
+            android:textAllCaps="false"
+            android:background="@android:color/transparent"
+
+            android:textStyle="bold"
+            tools:ignore="TouchTargetSizeCheck" />
+
+    </LinearLayout>
+</RelativeLayout>

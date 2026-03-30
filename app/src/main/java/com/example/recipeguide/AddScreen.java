@@ -11,9 +11,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.Uri;
@@ -23,6 +25,8 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -51,6 +55,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.cloudinary.android.MediaManager;
@@ -121,8 +129,8 @@ public class AddScreen extends AppCompatActivity {
     private int recipesVersion, tagsVersion;
     private ImageButton btnAddImage;
     private Bitmap selectedBitmap; // Для хранения выбранного изображения
-    private IngredientsFragmentForAddScreen ingredientFragment = new IngredientsFragmentForAddScreen();
-    private RecipeFragmentForAddScreen recipeFragment = new RecipeFragmentForAddScreen();
+    private IngredientsFragmentForAddScreen ingredientFragment;
+    private RecipeFragmentForAddScreen recipeFragment;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
     private FirebaseAuth mAuth;
     FirebaseDatabase database;
@@ -133,6 +141,7 @@ public class AddScreen extends AppCompatActivity {
     BaseAdActivity baseAdActivity;
 
     private Button btnAddRow;
+    private Button buttonSave;
     private ImageButton btnExtraInfo;
     private TextView tvExtraInfoStatus;
 
@@ -142,6 +151,10 @@ public class AddScreen extends AppCompatActivity {
     //private List<String> mainIngredients = new ArrayList<>();
     private PopupWindow tooltipPopup;
     private static final String KEY_TOOLTIP_SHOWN = "tooltip_shown";
+
+    private String editingRecipeId = null;
+    private boolean isEditMode = false;
+    private boolean isEditPhoto = false;
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -191,6 +204,8 @@ public class AddScreen extends AppCompatActivity {
             }
         };
 
+        ingredientFragment = new IngredientsFragmentForAddScreen();
+        recipeFragment = new RecipeFragmentForAddScreen();
 // 3) Привязываем адаптер и устанавливаем начальное состояние
         spinner = findViewById(R.id.spinner_category);
         adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
@@ -243,7 +258,7 @@ public class AddScreen extends AppCompatActivity {
         recipeNameEditText.setMovementMethod(new ScrollingMovementMethod());
         recipeNameEditText.post(() -> scrollingText(recipeNameEditText));
 
-        Button buttonSave = findViewById(R.id.button_save);
+        buttonSave = findViewById(R.id.button_save);
         btnAddRow = findViewById(R.id.btn_add_row);
         btnAddRow.setOnClickListener(v -> ingredientFragment.addIngredientRow());
 
@@ -273,7 +288,6 @@ public class AddScreen extends AppCompatActivity {
         buttonSave.setOnClickListener(v -> saveImageToInternalStorage(databaseHelper));
 
 
-
         btnExtraInfo = findViewById(R.id.button_more);
         //btnExtraInfo.setOnClickListener(v -> openExtraInfoDialog());
 
@@ -295,6 +309,85 @@ public class AddScreen extends AppCompatActivity {
             // Открываем ваш диалог с доп информацией
             openExtraInfoDialog();
         });
+
+        if (getIntent().hasExtra("is_edit") && getIntent().getBooleanExtra("is_edit", false)) {
+            isEditMode = true;
+            editingRecipeId = getIntent().getStringExtra("recipe_id");
+
+            if (editingRecipeId != null) {
+                loadRecipeForEditing(editingRecipeId);
+            }
+        }
+    }
+
+    private void loadRecipeForEditing(String recipeId) {
+        DatabaseHandler db = new DatabaseHandler(this);
+        Recipe recipe = db.getRecipe(recipeId);
+
+        if (recipe != null) {
+            // Заполняем поля формы
+            recipeNameEditText.setText(recipe.getName());
+            preparationTimeEditText.setText(String.valueOf(recipe.getCookingTime()));
+            spinner.setSelection(recipe.getCategory() + 1);
+
+            String imagePath = recipe.getImage();
+            if (imagePath != null) {
+                photoFileName = imagePath;
+                File imgFile = new File(photoFileName);
+                if (imgFile.exists()) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    btnAddImage.setImageBitmap(bitmap); // Устанавливаем изображение в ImageView
+                    imageUri = Uri.fromFile(imgFile);
+                } else {
+                    Glide.with(this)
+                            .load(imagePath)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL) // Загружаем из кеша, если интернета нет
+                            .into(btnAddImage);
+
+                    Glide.with(this)
+                            .asFile()
+                            .load(imagePath)
+                            .into(new CustomTarget<File>() {
+                                @Override
+                                public void onResourceReady(@NonNull File resource, @Nullable Transition<? super File> transition) {
+                                    Uri uri = Uri.fromFile(resource);
+                                    imageUri = uri;
+                                }
+
+                                @Override
+                                public void onLoadCleared(@Nullable Drawable placeholder) {}
+                            });
+
+                }
+            } else {
+                // Устанавливаем изображение-заглушку, если данных нет
+                btnAddImage.setImageResource(R.drawable.dumplings);
+            }
+
+            if (sharedPreferences.getBoolean("language", false)) {
+                recipeNameEditText.setText(recipe.getName());
+                String recipeText = recipe.getRecipe();
+                if (recipeText != null && !recipeText.isEmpty()) {
+                    recipeFragment.setEditMode(recipeText);
+                }
+                String ingredientsText = recipe.getIngredient();
+                if (ingredientsText != null && !ingredientsText.isEmpty()) {
+                    ingredientFragment.setEditMode(ingredientsText);
+                }
+            } else {
+                recipeNameEditText.setText(recipe.getName_en());
+                String recipeText = recipe.getRecipe_en();
+                if (recipeText != null && !recipeText.isEmpty()) {
+                    recipeFragment.setEditMode(recipeText);
+                }
+                String ingredientsText = recipe.getIngredient_en();
+                if (ingredientsText != null && !ingredientsText.isEmpty()) {
+                    ingredientFragment.setEditMode(ingredientsText);
+                }
+            }
+            // Меняем текст кнопки
+            buttonSave.setText(R.string.update);
+        }
     }
 
     private void showTooltip() {
@@ -331,6 +424,7 @@ public class AddScreen extends AppCompatActivity {
             sharedPreferences.edit().putBoolean(KEY_TOOLTIP_SHOWN, true).apply();
         });
     }
+
     private void openExtraInfoDialog() {
         ExtraInfoDialogFragment dialog = ExtraInfoDialogFragment.newInstance();
 
@@ -350,8 +444,6 @@ public class AddScreen extends AppCompatActivity {
     }
 
 
-
-
     // Открытие галереи для выбора изображения
     private void openImageChooser() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
@@ -366,6 +458,9 @@ public class AddScreen extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null && result.getData().getData() != null) {
                         imageUri = result.getData().getData(); // Получаем URI выбранного изображения
                         loadImageFromUri(imageUri);
+                        if (isEditMode) {
+                            isEditPhoto = true;
+                        }
                     }
                 }
         );
@@ -480,8 +575,14 @@ public class AddScreen extends AppCompatActivity {
                 translated[5] = translatedList.get(2);
             }
             if (validateInputs()) {
-                String recipeId = UUID.randomUUID().toString();
-                if (validateImage()) {
+                String recipeId;
+                if (isEditMode) {
+                    recipeId = editingRecipeId;
+                } else {
+                    recipeId = UUID.randomUUID().toString();
+                }
+                //if (validateImage()) {
+                if (true) {
                     updateRecipesVersion();
                     updateTagsVersion();
                     saveData(databaseHandler, recipeId, translated);
@@ -799,7 +900,14 @@ public class AddScreen extends AppCompatActivity {
             Toast.makeText(this, "Ошибка сжатия изображения", Toast.LENGTH_SHORT).show();
 
         }
-        Uri compressedImageUri = Uri.fromFile(compressedFile);
+
+        Uri compressedImageUri;
+
+        if (isEditMode && !isEditPhoto){
+            compressedImageUri = imageUri;
+        }else {
+            compressedImageUri = Uri.fromFile(compressedFile);
+        }
         //Tasks.whenAllComplete().addOnSuccessListener(unused -> {
         ExecutorService imageUploadExecutor = Executors.newSingleThreadExecutor();
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -917,14 +1025,14 @@ public class AddScreen extends AppCompatActivity {
                     myRef.child(recipeId).child("version").setValue(recipesVersion);
                     myRef.child(recipeId).child("last_updated").setValue(ServerValue.TIMESTAMP);
 
-                    if(!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")){
+                    if (!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")) {
                         myRef.child(recipeId).child("meta").child("cuisine").setValue(selectedCuisine.trim());
                         database.getReference("indices").child("by_cuisine").child(selectedCuisine.trim()).child(recipeId).setValue(true);
                         database.getReference("indices").child("by_cuisine").child(selectedCuisine.trim()).child("version").setValue(tagsVersion);
 
                     }
-                    if(!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")){
-                        for(int i = 0; i < selectedDiet.size(); i++){
+                    if (!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")) {
+                        for (int i = 0; i < selectedDiet.size(); i++) {
                             myRef.child(recipeId).child("meta").child("diet").child(String.valueOf(i)).setValue(selectedDiet.get(i).trim());
                             database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child(recipeId).setValue(true);
                             database.getReference("indices").child("by_diet").child(selectedDiet.get(i).trim()).child("version").setValue(tagsVersion);
@@ -1063,18 +1171,21 @@ public class AddScreen extends AppCompatActivity {
 
         int preparationTime = Integer.parseInt(preparationTimeEditText.getText().toString().trim());
 
-        // Генерация имени файла
-        photoFileName = getFilesDir() + "/saved_image_" + System.currentTimeMillis() + ".png";
 
-        // Сохранение изображения
-        File file = new File(photoFileName);
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            selectedBitmap.compress(Bitmap.CompressFormat.PNG, 100, fos); // Сохраняем изображение
+        if (!isEditMode || isEditPhoto) {
+            // Генерация имени файла
+            photoFileName = getFilesDir() + "/saved_image_" + System.currentTimeMillis() + ".png";
+            // Сохранение изображения
+            File file = new File(photoFileName);
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                selectedBitmap.compress(Bitmap.CompressFormat.PNG, 100, fos); // Сохраняем изображение
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, getString(R.string.error_load_image), Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, getString(R.string.error_load_image), Toast.LENGTH_SHORT).show();
+            }
         }
+
         /*translateRecipeData(recipeName, ingredientsData, recipeData, isRussian, translatedList -> {
             if (isRussian) {
                 translated[0] = translatedList.get(0);
@@ -1093,19 +1204,22 @@ public class AddScreen extends AppCompatActivity {
                 translated[5] = translatedList.get(2);
             }*/
 
-        ArrayList<String> dishes = new ArrayList<>();
+        if (!isEditMode) {
 
-        SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        String dishJson = prefs.getString("dish_list", null);
-        Gson gson = new Gson();
 
-        if (dishJson != null) {
+            ArrayList<String> dishes = new ArrayList<>();
 
-            dishes = gson.fromJson(dishJson, new TypeToken<ArrayList<String>>() {
-            }.getType());
-            Log.d("ActivityProfile", "Загружено рецептов: " + dishes.size());
-        }
+            SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            String dishJson = prefs.getString("dish_list", null);
+            Gson gson = new Gson();
+
+            if (dishJson != null) {
+
+                dishes = gson.fromJson(dishJson, new TypeToken<ArrayList<String>>() {
+                }.getType());
+                Log.d("ActivityProfile", "Загружено рецептов: " + dishes.size());
+            }
 
         /*dish.setName(translated[0]);
         dish.setName_en(translated[3]);
@@ -1113,27 +1227,33 @@ public class AddScreen extends AppCompatActivity {
         dish.setId(recipeId);
         dish.setCookingTime(preparationTime);
 */
-        dishes.add(recipeId);
+            dishes.add(recipeId);
 
-        dishJson = gson.toJson(dishes);
-        editor.putString("dish_list", dishJson);
-        editor.apply();
-        Log.d("Translation", "Оригинал: " + translated[0]);
+            dishJson = gson.toJson(dishes);
+            editor.putString("dish_list", dishJson);
+            editor.apply();
+            Log.d("Translation", "Оригинал: " + translated[0]);
 
-        databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), "create", recipeId, System.currentTimeMillis());
+            databaseHandler.insertEvent(java.util.UUID.randomUUID().toString(), "create", recipeId, System.currentTimeMillis());
+            Recipe recipe = new Recipe(recipeId, translated[0], translated[3], photoFileName, preparationTime, translated[2], translated[5], translated[1], translated[4], 1, 0, spinner.getSelectedItemPosition() - 1, null, null);
 
-        Recipe recipe = new Recipe(recipeId, translated[0], translated[3], photoFileName, preparationTime, translated[2], translated[5], translated[1], translated[4], 1, 0, spinner.getSelectedItemPosition() - 1, null, null);
+            databaseHandler.addRecipe(recipe);
 
-        databaseHandler.addRecipe(recipe);
-
-        if(!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")){
-            databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeId, "cuisine", selectedCuisine.trim()));
-        }
-        if(!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")){
-            for(String diet: selectedDiet){
-                databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeId, "diet", diet));
+            if (!selectedCuisine.isEmpty() && !selectedCuisine.equals("null")) {
+                databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeId, "cuisine", selectedCuisine.trim()));
             }
+            if (!selectedDiet.isEmpty() && !selectedDiet.get(0).equals("null")) {
+                for (String diet : selectedDiet) {
+                    databaseHandler.insertTags(new Tags(java.util.UUID.randomUUID().toString(), recipeId, "diet", diet));
+                }
+            }
+        } else {
+            Recipe recipe = new Recipe(recipeId, translated[0], translated[3], photoFileName, preparationTime, translated[2], translated[5], translated[1], translated[4], 1, 0, spinner.getSelectedItemPosition() - 1, null, null);
+
+            databaseHandler.updateRecipe(recipe);
         }
+
+
         //});
 /*
 
@@ -1196,6 +1316,7 @@ public class AddScreen extends AppCompatActivity {
         //Recipe recipe = new Recipe(recipeId, recipeName, photoFileName, preparationTime, recipeData, ingredientsData, 1);
 
     }
+
     private void updateRecipesVersion() {
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("recipes_metadata");
@@ -1288,7 +1409,7 @@ public class AddScreen extends AppCompatActivity {
         }
 
         // Проверка изображения
-        if (selectedBitmap == null) { // Проверка наличия изображения
+        if (selectedBitmap == null && !isEditMode) { // Проверка наличия изображения
             btnAddImage.setBackgroundResource(R.drawable.error_underline);
             isValid = false;
         } else {
