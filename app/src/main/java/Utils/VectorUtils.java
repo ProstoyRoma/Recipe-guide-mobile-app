@@ -1,5 +1,7 @@
 package Utils;
 
+import android.util.Log;
+
 public class VectorUtils {
     public static byte[] floatsToBytes(float[] arr) {
         if (arr == null) return null;
@@ -31,6 +33,36 @@ public class VectorUtils {
         return arr;
     }
 
+    public static float[] parseVectorString(String vectorString) {
+        if (vectorString == null || vectorString.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Убираем квадратные скобки
+            String cleanString = vectorString.trim();
+            if (cleanString.startsWith("[") && cleanString.endsWith("]")) {
+                cleanString = cleanString.substring(1, cleanString.length() - 1);
+            }
+
+            // Разделяем по запятым
+            String[] parts = cleanString.split(",");
+
+            // Создаём массив float
+            float[] vector = new float[parts.length];
+            for (int i = 0; i < parts.length; i++) {
+                vector[i] = Float.parseFloat(parts[i].trim());
+            }
+
+            return vector;
+        } catch (NumberFormatException e) {
+            Log.e("VectorParser", "Number format error: " + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            Log.e("VectorParser", "Parse error: " + e.getMessage());
+            return null;
+        }
+    }
     public static double dot(double[] a, double[] b) {
         if (a == null || b == null) return 0.0;
         int len = Math.min(a.length, b.length);
@@ -92,7 +124,33 @@ public class VectorUtils {
         return (float) cos;
     }
 
-        public static float[] addScaled(float[] base, float[] vec, float scale) {
+    public static float cosineSimilarity(float[] a, float[] b) {
+        if (a == null || b == null) return 0f;
+        if (a.length != b.length) return 0f;
+
+        double dot = 0.0;
+        double na = 0.0;
+        double nb = 0.0;
+        for (int i = 0; i < a.length; i++) {
+            double va = a[i];
+            double vb = b[i];
+            dot += va * vb;
+            na += va * va;
+            nb += vb * vb;
+        }
+
+        final double EPS = 1e-12;
+        if (na < EPS || nb < EPS) return 0f;
+
+        double cos = dot / (Math.sqrt(na) * Math.sqrt(nb));
+        if (cos > 1.0) cos = 1.0;
+        else if (cos < -1.0) cos = -1.0;
+        return (float) cos;
+    }
+
+
+
+    public static float[] addScaled(float[] base, float[] vec, float scale) {
         if (vec == null) return base;
         int len = vec.length;
         if (len == 0) return base;

@@ -144,6 +144,43 @@
 
     </LinearLayout>
 
+    <!-- Кухня (автодополнение + мультивыбор) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ingredients_filter"
+        android:textStyle="bold"
+        android:layout_marginTop="5dp"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/et_ingredients_filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:hint="@string/example_hint_ingredients_filter"
+            android:completionThreshold="1"
+            tools:ignore="TouchTargetSizeCheck" />
+
+        <ImageButton
+            android:id="@+id/btn_mic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_btn_speak_now"
+            tools:ignore="SpeakableTextPresentCheck" />
+
+
+    </LinearLayout>
+
     <!-- Кнопки -->
     <LinearLayout
         android:layout_width="match_parent"

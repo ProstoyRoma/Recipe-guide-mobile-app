@@ -177,6 +177,14 @@
     <string name="delete">Delete</string>
     <string name="toast_recipe_deleted">Recipe removed</string>
     <string name="update">Update</string>
+    <string name="ingredients_filter">Search by ingredients:</string>
+    <string name="example_hint_ingredients_filter">List the ingredients separated by commas</string>
+    <string name="voice_language">en-US</string>
+    <string name="voice_promt">Tell the ingredients...</string>
+    <string name="toast_voice_not_supported">Voice input is not supported</string>
+    <string name="toast_unable_recognize_ingredients">Unable to recognize ingredients</string>
+    <string name="toast_without_permission">Voice input is not available without permission.</string>
+
 
     <string-array name="categories_array">
         <item>Select</item>

@@ -16,11 +16,14 @@ public class Recipe {
     private int isColdStart;
     private int category;
     private String ingredient_parsed;
-    private byte[] vector;
+    private float[] vector;
+    private float lastSimilarity = 0.0f;
+    private float lastComparison = 0.0f;
 
 
     public Recipe() {
     }
+
     public Recipe(String id, String name, String image, int cookingTime, String recipe, String ingredient, int isFavorite) {
         this.ingredient = ingredient;
         this.id = id;
@@ -31,7 +34,7 @@ public class Recipe {
         this.isFavorite = isFavorite;
     }
     public Recipe(String id, String name,String name_en, String image, int cookingTime, String recipe, String recipe_en,
-                  String ingredient, String ingredient_en, int isFavorite, int isCook, int category, String ingredient_parsed, byte[] vector) {
+                  String ingredient, String ingredient_en, int isFavorite, int isCook, int category, String ingredient_parsed, float[] vector) {
         this.id = id;
         this.name = name;
         this.name_en = name_en;
@@ -47,7 +50,6 @@ public class Recipe {
         this.ingredient_parsed = ingredient_parsed;
         this.vector = vector;
     }
-
     public Recipe(String id, String name,String name_en, String image, int cookingTime){
         this.id = id;
         this.name = name;
@@ -55,6 +57,7 @@ public class Recipe {
         this.image = image;
         this.cookingTime = cookingTime;
     }
+
     public Recipe(String id, String name,String name_en, String image, int cookingTime, String ingredient, String ingredient_en){
         this.id = id;
         this.name = name;
@@ -72,7 +75,6 @@ public class Recipe {
         this.ingredient = ingredient;
         this.isFavorite = isFavorite;
     }
-
     public String getId() {
         return id;
     }
@@ -177,11 +179,11 @@ public class Recipe {
         this.isColdStart = isColdStart;
     }
 
-    public byte[] getVectors() {
+    public float[] getVectors() {
         return vector;
     }
 
-    public void setVectors(byte[] vector) {
+    public void setVectors(float[] vector) {
         this.vector = vector;
     }
 
@@ -191,5 +193,16 @@ public class Recipe {
 
     public void setIngredient_parsed(String ingredient_parsed) {
         this.ingredient_parsed = ingredient_parsed;
+    }
+
+    public float getLastSimilarity() { return lastSimilarity; }
+    public void setLastSimilarity(float s) { this.lastSimilarity = s; }
+
+    public float getLastComparison() {
+        return lastComparison;
+    }
+
+    public void setLastComparison(float lastComparison) {
+        this.lastComparison = lastComparison;
     }
 }

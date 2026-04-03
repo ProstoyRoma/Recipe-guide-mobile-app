@@ -1,14 +1,20 @@
 package com.example.recipeguide;
 
+
+import android.app.SearchManager;
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.speech.RecognizerIntent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,14 +33,19 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -58,6 +69,7 @@ public class SearchActivity extends AppCompatActivity {
     BaseAdActivity baseAdActivity;
     private ImageButton btnFilter;
     private FrameLayout filterContainer;
+    private ProgressBar progressBar;
     private DishAdapter adapter;
     private DatabaseHandler databaseHelper;
     private String lastQuery = ""; // хранит последний текст в SearchView
@@ -76,8 +88,9 @@ public class SearchActivity extends AppCompatActivity {
     // Элементы фильтра
     private Spinner spinnerDiet, spinnerCategory;
     private AutoCompleteTextView actvCuisine;
-    private EditText etMaxTime;
+    private EditText etMaxTime, etIngredients;
     private Button btnClear, btnApply;
+    private ImageButton btnMic;
     private LinearLayout selectedCategoriesContainer;
     private LinearLayout selectedCuisinesContainer;
     private LinearLayout selectedDietsContainer;
@@ -85,6 +98,9 @@ public class SearchActivity extends AppCompatActivity {
     private ArrayAdapter<String> cuisineAutoCompleteAdapter, dietAdapter, categoryAdapter;
     private Map<String, String> cuisineMap;
     private Map<String, String> dietMap;
+    private static final int REQ_CODE_SPEECH = 1234;
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+    private static final int REQUEST_VOICE_INPUT = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +128,8 @@ public class SearchActivity extends AppCompatActivity {
         englishDiets = getResources().getStringArray(R.array.diets_en);
         allCuisines = getResources().getStringArray(R.array.cuisines_array);
         englishCuisines = getResources().getStringArray(R.array.cuisines_en);
+
+        setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 
         initViews();
         setupSearchView();
@@ -162,6 +180,7 @@ public class SearchActivity extends AppCompatActivity {
         searchView = findViewById(R.id.search_field);
         btnFilter = findViewById(R.id.btn_filter);
         filterContainer = findViewById(R.id.filter_container);
+        progressBar = findViewById(R.id.uploadProgressBar);
 
         databaseHelper = new DatabaseHandler(this);
         ArrayList<Recipe> dishes = databaseHelper.getAllRecipe();
@@ -170,12 +189,21 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     private void setupSearchView() {
+        searchView.setQueryHint(getString(R.string.search));
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        if (searchManager != null) {
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(new ComponentName(this, getClass())));
+
+        }
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 lastQuery = query != null ? query : "";
                 if (isFiltering) {
-                    applySearchAndFilters(() -> {});
+                    applySearchAndFilters(() -> {
+                    });
                 } else {
                     adapter.getFilter().filter(lastQuery);
                 }
@@ -186,7 +214,8 @@ public class SearchActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 lastQuery = newText != null ? newText : "";
                 if (isFiltering) {
-                    applySearchAndFilters(() -> {});
+                    applySearchAndFilters(() -> {
+                    });
                 } else {
                     adapter.getFilter().filter(lastQuery);
                 }
@@ -194,6 +223,26 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
     }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            if (query != null && !query.isEmpty()) {
+                lastQuery = query;
+                searchView.setQuery(query, false);
+                if (isFiltering) {
+                    applySearchAndFilters(() -> {
+                    });
+                } else {
+                    adapter.getFilter().filter(query);
+                }
+            }
+        }
+    }
+
 
     private void setupFilterButton() {
         btnFilter.setOnClickListener(v -> {
@@ -247,8 +296,10 @@ public class SearchActivity extends AppCompatActivity {
         spinnerDiet = filterView.findViewById(R.id.spinner_diet);
         actvCuisine = filterView.findViewById(R.id.actv_cuisine);
         etMaxTime = filterView.findViewById(R.id.et_max_time);
+        etIngredients = filterView.findViewById(R.id.et_ingredients_filter);
         btnApply = filterView.findViewById(R.id.btn_apply);
         btnClear = filterView.findViewById(R.id.btn_clear);
+        btnMic = filterView.findViewById(R.id.btn_mic);
 
         selectedCategoriesContainer = filterView.findViewById(R.id.selected_categories_container);
         selectedCuisinesContainer = filterView.findViewById(R.id.selected_cuisines_container);
@@ -388,8 +439,15 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
+        btnMic.setOnClickListener(v -> {
+            if (checkAudioPermission()) {
+                startVoiceInput();
+            }
+        });
+
         // Кнопка "Применить"
         btnApply.setOnClickListener(v -> {
+            progressBar.setVisibility(View.VISIBLE);
             btnApply.setEnabled(false);
 
             // Показываем индикатор загрузки (опционально)
@@ -400,6 +458,8 @@ public class SearchActivity extends AppCompatActivity {
                 hideFilterPanel();
                 Toast.makeText(this, R.string.toast_applied_filters, Toast.LENGTH_SHORT).show();
                 btnApply.setEnabled(true);
+                progressBar.setVisibility(View.GONE);
+
             });
         });
 
@@ -470,7 +530,7 @@ public class SearchActivity extends AppCompatActivity {
         updateContainersVisibility();
         etMaxTime.setText("");
 
-        applySearchAndFilters(() ->{
+        applySearchAndFilters(() -> {
             hideFilterPanel();
             Toast.makeText(this, R.string.toast_reset_filters, Toast.LENGTH_SHORT).show();
             // Включаем кнопку обратно
@@ -480,6 +540,7 @@ public class SearchActivity extends AppCompatActivity {
 
     private void applySearchAndFilters(Runnable onComplete) {
         String maxTimeStr = etMaxTime.getText().toString().trim();
+        String ingredientsStr = etIngredients.getText().toString().trim();
         if (!maxTimeStr.isEmpty()) {
             try {
                 currentFilters.setMaxCookingTime(Integer.parseInt(maxTimeStr));
@@ -488,6 +549,16 @@ public class SearchActivity extends AppCompatActivity {
             }
         } else {
             currentFilters.setMaxCookingTime(null);
+        }
+
+        if (!ingredientsStr.isEmpty()) {
+            try {
+                currentFilters.setIngredients(ingredientsStr);
+            } catch (NumberFormatException e) {
+                currentFilters.setIngredients(null);
+            }
+        } else {
+            currentFilters.setIngredients(null);
         }
 
         adapter.setFilters(currentFilters);
@@ -499,6 +570,108 @@ public class SearchActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private boolean checkAudioPermission() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.RECORD_AUDIO},
+                    REQUEST_RECORD_AUDIO_PERMISSION);
+            return false;
+        }
+        return true;
+    }
+
+    private void startVoiceInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("MODE", MODE_PRIVATE);
+        // Устанавливаем язык в зависимости от настроек приложения
+        boolean isRussian = sharedPreferences.getBoolean("language", false);
+        String language = isRussian ? "ru-RU" : "en-US";
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language);
+
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_promt));
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+
+        try {
+            startActivityForResult(intent, REQUEST_VOICE_INPUT);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, R.string.toast_voice_not_supported, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_VOICE_INPUT && resultCode == RESULT_OK) {
+            ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (results != null && !results.isEmpty()) {
+                String spokenText = results.get(0);
+                appendIngredient(spokenText);
+            }
+        }
+    }
+
+    private void appendIngredient(String spokenText) {
+        String currentText = etIngredients.getText().toString();
+
+        // 1. Убираем всю пунктуацию и лишние пробелы
+        String cleanedText = spokenText
+                .replaceAll("[\\p{Punct}]", " ")  // Заменяем все знаки препинания на пробелы
+                .replaceAll("\\s+", " ")          // Заменяем множественные пробелы на один
+                .trim();                          // Убираем пробелы в начале и конце
+
+        // 2. Разбиваем на слова
+        String[] words = cleanedText.split(" ");
+
+        // 3. Собираем слова через запятую
+        StringBuilder result = new StringBuilder();
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                if (result.length() > 0) {
+                    result.append(", ");
+                }
+                // Делаем первую букву заглавной
+                String capitalized = word.substring(0, 1).toUpperCase() +
+                        word.substring(1).toLowerCase();
+                result.append(capitalized);
+            }
+        }
+
+        String newIngredients = result.toString();
+
+        if (newIngredients.isEmpty()) {
+            Toast.makeText(this, R.string.toast_unable_recognize_ingredients, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 4. Добавляем в EditText
+        if (currentText.isEmpty()) {
+            etIngredients.setText(newIngredients);
+        } else {
+            etIngredients.setText(currentText + ", " + newIngredients);
+        }
+
+        etIngredients.setSelection(etIngredients.getText().length());
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startVoiceInput();
+            } else {
+                Toast.makeText(this, R.string.toast_without_permission, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void setupListView() {

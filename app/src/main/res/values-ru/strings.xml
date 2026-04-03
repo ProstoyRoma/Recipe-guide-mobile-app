@@ -42,6 +42,9 @@
     <string name="no_email_client">Почтовый клиент не найден</string>
     <string name="prepared">Приготовил(а)</string>
     <string name="cooked_message">Блюдо сохранено в личном кабинете</string>
+    <string name="voice_language">ru-RU</string>
+
+
 
 
 
@@ -178,6 +181,12 @@
     <string name="delete">Удалить</string>
     <string name="toast_recipe_deleted">Рецепт удалён</string>
     <string name="update">Обновить</string>
+    <string name="ingredients_filter">Поиск по ингредиентам:</string>
+    <string name="example_hint_ingredients_filter">Перечислите ингредиенты через запятую</string>
+    <string name="voice_promt">Скажите ингредиенты...</string>
+    <string name="toast_voice_not_supported">Голосовой ввод не поддерживается</string>
+    <string name="toast_unable_recognize_ingredients">Не удалось распознать ингредиенты</string>
+    <string name="toast_without_permission">Голосовой ввод недоступен без разрешения</string>
 
     <string-array name="categories_array">
         <item>Выбрать</item>

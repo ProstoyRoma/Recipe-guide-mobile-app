@@ -10,12 +10,14 @@ public class FilterOptions {
     private Set<String> selectedCuisines;    // Множественный выбор кухонь
     private Set<String> selectedDiets;       // Множественный выбор диет
     private Integer maxCookingTime;
+    private String ingredients;
 
     public FilterOptions() {
         this.selectedCategories = new HashSet<>();
         this.selectedCuisines = new HashSet<>();
         this.selectedDiets = new HashSet<>();
         this.maxCookingTime = null;
+        this.ingredients = null;
     }
 
     public Set<String> getSelectedCategories() { return selectedCategories; }
@@ -35,6 +37,14 @@ public class FilterOptions {
 
     public Integer getMaxCookingTime() { return maxCookingTime; }
     public void setMaxCookingTime(Integer maxCookingTime) { this.maxCookingTime = maxCookingTime; }
+
+    public String getIngredients() {
+        return ingredients;
+    }
+
+    public void setIngredients(String ingredients) {
+        this.ingredients = ingredients;
+    }
 
     public boolean isEmpty() {
         return selectedCategories.isEmpty() &&

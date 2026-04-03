@@ -41,6 +41,7 @@ import Model.Event;
 import Model.Recipe;
 import Model.Tags;
 import Utils.Util;
+import Utils.VectorUtils;
 
 public class DatabaseHandler extends SQLiteAssetHelper {
 
@@ -107,7 +108,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
             contentValues.put(Util.KEY_INGREDIENT_PARSED, recipe.getIngredient_parsed());
         }
         if(recipe.getVectors() != null){
-            contentValues.put(Util.KEY_VECTOR, recipe.getVectors());
+            contentValues.put(Util.KEY_VECTOR, Arrays.toString(recipe.getVectors()));
         }
 
         // Вставляем с конфликтом - заменяем при совпадении ID
@@ -140,7 +141,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
             contentValues.put(Util.KEY_INGREDIENT_PARSED, recipe.getIngredient_parsed());
         }
         if(recipe.getVectors() != null){
-            contentValues.put(Util.KEY_VECTOR, recipe.getVectors());
+            contentValues.put(Util.KEY_VECTOR, Arrays.toString(recipe.getVectors()));
         }
 
         db.insert(Util.TABLE_NAME, null, contentValues);
@@ -198,7 +199,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
                 cursor.getString(2), cursor.getString(1), cursor.getString(7),
                 Integer.parseInt(cursor.getString(8)), cursor.getString(6),
                 cursor.getString(5), cursor.getString(4), cursor.getString(3), Integer.parseInt(cursor.getString(10)), Integer.parseInt(cursor.getString(13)),
-                Integer.parseInt(cursor.getString(9)), cursor.getString(11), cursor.getBlob(12));
+                Integer.parseInt(cursor.getString(9)), cursor.getString(11), VectorUtils.parseVectorString(cursor.getString(12)));
         cursor.close();
         return recipe;
     }
@@ -217,7 +218,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
         }
         ArrayList<Recipe> recipeList = new ArrayList<>();
         String selectAllRecipe = "SELECT " + Util.KEY_ID + ", " + Util.KEY_NAME_EN + ", " + Util.KEY_NAME + ", " + Util.KEY_IMAGE + ", " + Util.KEY_COOKINGTIME + ", "
-                + Util.KEY_INGREDIENT_EN + ", " + Util.KEY_INGREDIENT + ", " + Util.KEY_CATEGORY + " FROM " + Util.TABLE_NAME;
+                + Util.KEY_INGREDIENT_EN + ", " + Util.KEY_INGREDIENT + ", " + Util.KEY_CATEGORY + "," + Util.KEY_INGREDIENT_PARSED + "," + Util.KEY_VECTOR + " FROM " + Util.TABLE_NAME;
         Cursor cursor = myDataBase.rawQuery(selectAllRecipe, null);
         if (cursor.moveToFirst()) {
             do {
@@ -230,6 +231,9 @@ public class DatabaseHandler extends SQLiteAssetHelper {
                 recipe.setIngredient_en(cursor.getString(5));
                 recipe.setIngredient(cursor.getString(6));
                 recipe.setCategory(Integer.parseInt(cursor.getString(7)));
+                recipe.setIngredient_parsed(cursor.getString(8));
+                String vector = cursor.getString(9);
+                recipe.setVectors(VectorUtils.parseVectorString(vector));
 
                 recipeList.add(recipe);
             } while (cursor.moveToNext());
@@ -247,7 +251,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
             String[] cols = new String[]{
                     Util.KEY_ID, Util.KEY_NAME_EN, Util.KEY_NAME, Util.KEY_INGREDIENT_EN, Util.KEY_INGREDIENT,
                     Util.KEY_RECIPE_EN, Util.KEY_RECIPE, Util.KEY_IMAGE, Util.KEY_COOKINGTIME, Util.KEY_CATEGORY,
-                    Util.KEY_ISFAVORITE, Util.KEY_INGREDIENT_PARSED, Util.KEY_VECTOR
+                    Util.KEY_ISFAVORITE, Util.KEY_INGREDIENT_PARSED, Util.KEY_VECTOR, Util.KEY_ISCOOKED
             };
             c = db.query(Util.TABLE_NAME, cols, null, null, null, null, null);
             while (c != null && c.moveToNext()) {
@@ -264,7 +268,9 @@ public class DatabaseHandler extends SQLiteAssetHelper {
                 recipe.setCategory(Integer.parseInt(c.getString(9)));
                 recipe.setIsFavorite(Integer.parseInt(c.getString(10)));
                 recipe.setIngredient_parsed(c.getString(11));
-                recipe.setVectors(c.getBlob(12));
+                String vector = c.getString(12);
+                recipe.setVectors(VectorUtils.parseVectorString(vector));
+                recipe.setIsCook(Integer.parseInt(c.getString(13)));
                 out.add(recipe);
             }
         } finally {
@@ -711,7 +717,7 @@ public class DatabaseHandler extends SQLiteAssetHelper {
             contentValues.put(Util.KEY_INGREDIENT_PARSED, recipe.getIngredient_parsed());
         }
         if(recipe.getVectors() != null){
-            contentValues.put(Util.KEY_VECTOR, recipe.getVectors());
+            contentValues.put(Util.KEY_VECTOR, Arrays.toString(recipe.getVectors()));
         }
 
         db.update(Util.TABLE_NAME,

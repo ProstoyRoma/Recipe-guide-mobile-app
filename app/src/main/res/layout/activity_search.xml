@@ -37,11 +37,11 @@
             android:clickable="true"
             android:ems="10"
             android:layout_marginEnd="3dp"
-            android:focusable="true"
             android:hint="@string/search"
             android:iconifiedByDefault="false"
             android:inputType="text"
-            android:textSize="20dp"
+            android:textSize="20sp"
+            android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"
             />
 
         <ImageButton
@@ -143,5 +143,14 @@
             app:srcCompat="?attr/buttonGearIcon" />
     </LinearLayout>
 
+    <ProgressBar
+        android:id="@+id/uploadProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
