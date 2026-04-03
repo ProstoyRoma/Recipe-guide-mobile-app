@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import Data.DatabaseHandler;
 import Model.Recipe;
 import Model.Tags;
+import Utils.VectorUtils;
 
 public class SplashScreen extends AppCompatActivity {
     SharedPreferences sharedPreferences;
@@ -324,7 +325,7 @@ public class SplashScreen extends AppCompatActivity {
                                 recipe.setRecipe_en(recipeSnapshot.child("recipe_en").getValue(String.class));
                                 recipe.setIngredient_parsed(recipeSnapshot.child("ingredients_parsed").getValue(String.class));
                                 String ingVec = recipeSnapshot.child("ingredient_vectors").getValue(String.class);
-                                recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
+                                recipe.setVectors(VectorUtils.parseVectorString(ingVec));
                                 databaseHandler.addRecipe(recipe);
                             }
 

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 
 import Data.DatabaseHandler;
 import Model.Recipe;
+import Utils.VectorUtils;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -53,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputLayout emailText, username, passwordText, confirm_password;
     private AppCompatButton login_button;
     private TextView toggleLoginSignUp;
+    private ProgressBar progressBar;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
 
@@ -75,6 +78,7 @@ public class LoginActivity extends AppCompatActivity {
         login_button = findViewById(R.id.login_button);
         toggleLoginSignUp = findViewById(R.id.toggleLoginSignUp);
         auth_title = findViewById(R.id.auth_title);
+        progressBar = findViewById(R.id.uploadProgressBar);
 
         mAuth = FirebaseAuth.getInstance();
         setupBackButtonHandler();
@@ -166,6 +170,7 @@ public class LoginActivity extends AppCompatActivity {
                             @Override
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
+                                    progressBar.setVisibility(View.VISIBLE);
                                     String usernameInput = username.getEditText().getText().toString().trim();
                                     Toast.makeText(LoginActivity.this, getString(R.string.user) + usernameInput + getString(R.string.success_signin), Toast.LENGTH_LONG).show();
 
@@ -202,6 +207,8 @@ public class LoginActivity extends AppCompatActivity {
 
                                     saveMyRecipeToFB();
 
+                                    progressBar.setVisibility(View.GONE);
+
                                     Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
                                     startActivity(intent);
                                     finish();
@@ -222,6 +229,7 @@ public class LoginActivity extends AppCompatActivity {
                 mAuth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener(this, task -> {
                             if (task.isSuccessful()) {
+                                progressBar.setVisibility(View.VISIBLE);
                                 Log.d("login", "signInWithEmail:success");
                                 FirebaseUser user = mAuth.getCurrentUser();
                                 database = FirebaseDatabase.getInstance();
@@ -262,6 +270,8 @@ public class LoginActivity extends AppCompatActivity {
                                                 myRef.child(user.getUid()).child("skillLevel").setValue(User.skillLevel);
 
                                                 getMyRecipe(LoginActivity.this, dishes -> {
+                                                    progressBar.setVisibility(View.GONE);
+
                                                     Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
                                                     intent.putStringArrayListExtra("dish_list", dishes);
                                                     startActivity(intent);
@@ -271,6 +281,8 @@ public class LoginActivity extends AppCompatActivity {
                                             });
                                             builder.setNegativeButton(getString(R.string.cancel), (dialog, which) -> {
                                                 getMyRecipe(LoginActivity.this, dishes -> {
+                                                    progressBar.setVisibility(View.GONE);
+
                                                     Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
                                                     intent.putStringArrayListExtra("dish_list", dishes);
                                                     startActivity(intent);
@@ -283,6 +295,8 @@ public class LoginActivity extends AppCompatActivity {
                                         } else if (allergies != null && likeCategory != null && diet != null && likeCuisine != null && skillLevel != null) {
                                             User.updateFromQuestionnaire(allergies, diet, likeCuisine, likeCategory, skillLevel);
                                             getMyRecipe(LoginActivity.this, dishes -> {
+                                                progressBar.setVisibility(View.GONE);
+
                                                 Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
                                                 intent.putStringArrayListExtra("dish_list", dishes);
                                                 startActivity(intent);
@@ -291,6 +305,8 @@ public class LoginActivity extends AppCompatActivity {
 
                                         } else {
                                             getMyRecipe(LoginActivity.this, dishes -> {
+                                                progressBar.setVisibility(View.GONE);
+
                                                 Intent intent = new Intent(LoginActivity.this, ActivityProfile.class);
                                                 intent.putStringArrayListExtra("dish_list", dishes);
                                                 startActivity(intent);
@@ -302,7 +318,8 @@ public class LoginActivity extends AppCompatActivity {
                                     }
                                 });
 
-                                // 📌 Запрашиваем список рецептов через `Callback`
+
+                                progressBar.setVisibility(View.GONE);
 
                             } else {
                                 Log.w("login", "signInWithEmail:failure", task.getException());
@@ -389,7 +406,7 @@ public class LoginActivity extends AppCompatActivity {
                             recipe.setRecipe_en(child.child("recipe_en").getValue(String.class));
                             recipe.setIngredient_parsed(child.child("ingredients_parsed").getValue(String.class));
                             String ingVec = child.child("ingredient_vectors").getValue(String.class);
-                            recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
+                            recipe.setVectors(VectorUtils.parseVectorString(ingVec));
                             recipe.setIsFavorite(1);
                             recipe.setIsCook(1);
 
@@ -515,7 +532,7 @@ public class LoginActivity extends AppCompatActivity {
                                         recipe.setRecipe_en(recipeSnapshot.child("recipe_en").getValue(String.class));
                                         recipe.setIngredient_parsed(recipeSnapshot.child("ingredients_parsed").getValue(String.class));
                                         String ingVec = recipeSnapshot.child("ingredient_vectors").getValue(String.class);
-                                        recipe.setVectors(ingVec.getBytes(StandardCharsets.UTF_8));
+                                        recipe.setVectors(VectorUtils.parseVectorString(ingVec));
                                         recipe.setIsFavorite(1);
                                         recipe.setIsCook(0);
 

@@ -177,7 +177,7 @@ public class RecommendationManager {
             if (rv == null && !recipeVecCache.containsKey(rid)) {
                 Recipe rr = db.getRecipe(rid);
                 if (rr != null && rr.getVectors() != null) {
-                    rv = VectorUtils.bytesToFloats(rr.getVectors());
+                    rv = rr.getVectors();
                 } else rv = null;
                 recipeVecCache.put(rid, rv);
             }
@@ -229,7 +229,10 @@ public class RecommendationManager {
                     continue; // Пропускаем рецепт с аллергенами
                 }
             }
-            float[] rv = VectorUtils.bytesToFloats(r.getVectors());
+            if(r.getIsCook()== 1){
+                continue;
+            }
+            float[] rv = r.getVectors();
             vecCache.put(r.getId(), rv);
             recipeMap.put(r.getId(), r);
             float score = VectorUtils.cosine(userVec, rv);

@@ -314,7 +314,13 @@ public class recipe_example_activity extends AppCompatActivity {
 
                 String imagePath = selectedDish.getImage();
                 if (imagePath != null) {
-                    File imgFile = new File(imagePath);
+                    File imgFile;
+                    if (imagePath.contains("/data/data/com.example.recipeguide/files/")){
+                        imgFile = new File(imagePath);
+                    }else {
+                        imgFile = new File("/data/data/com.example.recipeguide/files/" + imagePath + ".jpg");
+
+                    }
                     if (imgFile.exists()) {
                         Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                         dishImage.setImageBitmap(bitmap); // Устанавливаем изображение в ImageView
