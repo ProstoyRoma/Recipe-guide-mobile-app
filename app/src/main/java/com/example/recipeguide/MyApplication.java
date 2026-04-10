@@ -21,6 +21,10 @@ import androidx.work.WorkManager;
 
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
+import com.google.firebase.ai.FirebaseAI;
+import com.google.firebase.ai.GenerativeModel;
+import com.google.firebase.ai.java.GenerativeModelFutures;
+import com.google.firebase.ai.type.GenerativeBackend;
 import com.yandex.mobile.ads.common.MobileAds;
 
 import java.io.File;
@@ -37,6 +41,7 @@ public class MyApplication extends Application {
     SharedPreferences.Editor editor;
     boolean russianLanguage;
     ExecutorService executor = Executors.newSingleThreadExecutor();
+    private static GenerativeModelFutures aiModel;
 
     @Override
     public void onCreate() {
@@ -51,6 +56,17 @@ public class MyApplication extends Application {
         }
 
 
+
+// Initialize the Gemini Developer API backend service
+// Create a `GenerativeModel` instance with a model that supports your use case
+        GenerativeModel ai = FirebaseAI.getInstance(GenerativeBackend.googleAI())
+                .generativeModel("gemini-3-flash-preview");
+
+// Use the GenerativeModelFutures Java compatibility layer which offers
+// support for ListenableFuture and Publisher APIs
+        aiModel = GenerativeModelFutures.from(ai);
+
+
         SharedPreferences prefs = getSharedPreferences("MODE", MODE_PRIVATE);
         boolean russian = prefs.getBoolean("language", true); // true = ru
         String langCode = russian ? "ru" : "en";
@@ -58,6 +74,10 @@ public class MyApplication extends Application {
         LocaleHelper.setLocale(this, langCode);
         //scheduleDailyAt3AM(this);
         //scheduleEveryDay(this);
+    }
+    // Глобальный доступ к модели через геттер
+    public static GenerativeModelFutures getAiModel() {
+        return aiModel;
     }
     public void scheduleEveryDay(Context context) {
         long delayMillis = calculateDelayToNext(23, 15);

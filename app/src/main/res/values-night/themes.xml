@@ -23,6 +23,7 @@
         <item name="buttonDislike">@drawable/button_dislike_dark</item>
         <item name="buttonMore">@drawable/button_more_dark</item>
         <item name="buttonFilter">@drawable/button_filter_dark</item>
+        <item name="buttonAI">@drawable/button_ai_dark</item>
         <item name="infoDialog">@drawable/info_dialog_dark</item>
         <item name="buttonStyle">@style/CustomButton</item>
         <item name="checkboxStyle">@style/CustomCheckBox</item>

@@ -24,6 +24,7 @@
         <item name="buttonDislike">@drawable/button_dislike</item>
         <item name="buttonMore">@drawable/button_more</item>
         <item name="buttonFilter">@drawable/button_filter</item>
+        <item name="buttonAI">@drawable/button_ai</item>
         <item name="infoDialog">@drawable/info_dialog</item>
         <item name="buttonStyle">@style/CustomButton</item>
         <item name="checkboxStyle">@style/CustomCheckBox</item>

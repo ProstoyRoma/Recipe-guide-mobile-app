@@ -77,10 +77,14 @@ dependencies {
 
     implementation ("com.itextpdf:itext7-core:7.2.5")
 
-    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    //implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-ai")
+    implementation("com.google.guava:guava:31.0.1-android")
+    implementation("org.reactivestreams:reactive-streams:1.0.4")
 
     implementation ("com.google.mlkit:translate:17.0.1")
 

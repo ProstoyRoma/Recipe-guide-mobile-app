@@ -22,7 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-
+        android:background="#00FFFFFF"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         app:layout_constraintEnd_toEndOf="parent"
@@ -45,36 +45,94 @@
             />
 
         <ImageButton
+            android:id="@+id/btn_ai"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:backgroundTint="#00FFFFFF"
+            android:contentDescription="Фильтр"
+            android:src="?attr/buttonAI"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayout3"
+            app:layout_constraintEnd_toEndOf="parent" />
+        <ImageButton
             android:id="@+id/btn_filter"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:backgroundTint="#00FFFFFF"
             android:src="?attr/buttonFilter"
             android:contentDescription="Фильтр"
-            android:layout_marginEnd="7dp"/>
-
+            android:layout_marginEnd="7dp"
+            android:layout_marginStart="7dp"
+            />
     </LinearLayout>
 
-    <!-- Контейнер для выпадающего фильтра (изначально скрыт) -->
-    <FrameLayout
-        android:id="@+id/filter_container"
+    <LinearLayout
+        android:id="@+id/dialog_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/search_container">
 
-        <include
-            android:id="@+id/filter_view"
-            layout="@layout/dialog_filter"
+        <!-- Контейнер для выпадающего AI помощника (изначально скрыт) -->
+        <FrameLayout
+            android:id="@+id/ai_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
 
-    </FrameLayout>
+            >
+
+            <include
+                android:id="@+id/ai_view"
+                layout="@layout/dialog_ai"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+        <!-- Контейнер для выпадающего фильтра (изначально скрыт) -->
+        <FrameLayout
+            android:id="@+id/filter_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
+
+
+            <include
+                android:id="@+id/filter_view"
+                layout="@layout/dialog_filter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+        <!-- Контейнер для выпадающего фильтра (изначально скрыт) -->
+        <!--<FrameLayout
+            android:id="@+id/filter_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/search_container">
+            >
+
+
+            <include
+                android:id="@+id/filter_view"
+                layout="@layout/dialog_filter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+        -->
+    </LinearLayout>
 
     <ListView
         android:id="@+id/listView"
@@ -87,7 +145,7 @@
         app:layout_constraintBottom_toTopOf="@+id/linearLayout3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filter_container" />
+        app:layout_constraintTop_toBottomOf="@id/dialog_layout" />
 
 
     <LinearLayout

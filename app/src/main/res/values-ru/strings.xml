@@ -175,6 +175,7 @@
     <string name="apply_filters">Применить</string>
     <string name="toast_reset_filters">Фильтры сброшены</string>
     <string name="toast_applying_filters">Применяем фильтры...</string>
+    <string name="toast_applying_ai">Исчем блюда...</string>
     <string name="toast_applied_filters">Фильтры применены</string>
     <string name="delete_dialog">Удаление рецепта</string>
     <string name="delete_message">Вы действительно хотите удалить рецепт</string>
@@ -184,9 +185,21 @@
     <string name="ingredients_filter">Поиск по ингредиентам:</string>
     <string name="example_hint_ingredients_filter">Перечислите ингредиенты через запятую</string>
     <string name="voice_promt">Скажите ингредиенты...</string>
+    <string name="voice_promt_search">Назовите блюдо</string>
     <string name="toast_voice_not_supported">Голосовой ввод не поддерживается</string>
     <string name="toast_unable_recognize_ingredients">Не удалось распознать ингредиенты</string>
     <string name="toast_without_permission">Голосовой ввод недоступен без разрешения</string>
+    <string name="ai">AI</string>
+    <string name="input_criteria_ai">Введите критерии для поиска блюд:</string>
+    <string name="additional_info_ai">(количество запросов ограничено)</string>
+    <string name="example_ai_input">Например: итальянская кухня, вегатарианское, до 30 мин приготовления</string>
+    <string name="promt1">У меня есть файл с рецептами. Вот его содержимое:\n</string>
+    <string name="promt2">"\n\nНайди блюда по введенным критериям, используя только данные из этого файла. Верни ТОЛЬКО id блюд через запятую, без лишних слов и пояснений.\nКритерии: "</string>
+    <string name="toast_search_ai1">"Найдено "</string>
+    <string name="toast_search_ai2">" рецептов"</string>
+    <string name="toast_not_found_ai_recipes">Не удалось найти рецепты по вашему запросу</string>
+    <string name="toast_fail_found_ai">"Ошибка: "</string>
+    <string name="toast_not_recipes">Рецепты не найдены</string>
 
     <string-array name="categories_array">
         <item>Выбрать</item>
