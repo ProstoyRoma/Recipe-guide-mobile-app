@@ -83,7 +83,6 @@ import com.google.mlkit.nl.translate.TranslatorOptions;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.tensorflow.lite.Interpreter;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -119,7 +118,6 @@ public class AddScreen extends AppCompatActivity {
     // Порог реконструкционной ошибки – подбирается экспериментально (примерное значение)
     private static final float THRESHOLD = 0.009f;
 
-    private Interpreter tflite;
     ProgressBar uploadProgressBar;
     private EditText recipeNameEditText;
     private EditText preparationTimeEditText;
@@ -237,11 +235,7 @@ public class AddScreen extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
-        try {
-            tflite = new Interpreter(loadModelFile(this, "final_autoencoder.tflite"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
         DatabaseHandler databaseHelper = new DatabaseHandler(this);
         sharedPreferences = getSharedPreferences("MODE", Context.MODE_PRIVATE);
 
@@ -677,29 +671,6 @@ public class AddScreen extends AppCompatActivity {
         dialog.show();
         //});
     }*/
-
-    private boolean validateImage() {
-        float[][][][] inputImage = convertBitmapToFloatArray();
-
-        // Создаём массив для результата инференса с размерами, соответствующими входным
-        float[][][][] outputImage = new float[1][MODEL_INPUT_HEIGHT][MODEL_INPUT_WIDTH][3];
-
-        // Выполняем инференс
-        tflite.run(inputImage, outputImage);
-
-        // Вычисляем среднеквадратичную ошибку (MSE) между входным и восстановленным изображениями
-        float error = calculateMSE(inputImage, outputImage);
-        Log.d("DishClassifier", "Reconstruction error: " + error);
-
-        // Если ошибка реконструкции ниже порога, считаем, что изображение – блюдо
-        if (error < THRESHOLD) {
-            Log.d("DishClassifier", "Изображение: блюдо");
-            return true;
-        } else {
-            Log.d("DishClassifier", "Изображение: не блюдо");
-            return false;
-        }
-    }
 
     private void saveDataFirebaseMyRecipe(String recipeId, String[] translated) {
 
@@ -1431,83 +1402,6 @@ public class AddScreen extends AppCompatActivity {
         }
 
         return isValid;
-    }
-
-    private MappedByteBuffer loadModelFile(Activity activity, String modelFilename) throws IOException {
-        AssetFileDescriptor fileDescriptor = activity.getAssets().openFd(modelFilename);
-        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
-        FileChannel fileChannel = inputStream.getChannel();
-        long startOffset = fileDescriptor.getStartOffset();
-        long declaredLength = fileDescriptor.getDeclaredLength();
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
-    }
-
-    /**
-     * Преобразует Bitmap в массив формата [1][MODEL_INPUT_HEIGHT][MODEL_INPUT_WIDTH][3].
-     * Изображение масштабируется до 169x274 и нормализуется (значения пикселей от 0 до 1).
-     */
-    private float[][][][] convertBitmapToFloatArray() {
-        // Выполняем обрезку изображения до центра с нужной шириной и высотой
-        Bitmap cropped = cropBitmap(selectedBitmap, MODEL_INPUT_WIDTH, MODEL_INPUT_HEIGHT);
-        float[][][][] inputArray = new float[1][MODEL_INPUT_HEIGHT][MODEL_INPUT_WIDTH][3];
-        int[] pixels = new int[MODEL_INPUT_WIDTH * MODEL_INPUT_HEIGHT];
-        cropped.getPixels(pixels, 0, MODEL_INPUT_WIDTH, 0, 0, MODEL_INPUT_WIDTH, MODEL_INPUT_HEIGHT);
-        for (int i = 0; i < pixels.length; i++) {
-            int pixel = pixels[i];
-            // Извлекаем компоненты цвета и нормализуем (делим на 255.0)
-            float r = ((pixel >> 16) & 0xFF) / 255.0f;
-            float g = ((pixel >> 8) & 0xFF) / 255.0f;
-            float b = (pixel & 0xFF) / 255.0f;
-            int x = i % MODEL_INPUT_WIDTH;
-            int y = i / MODEL_INPUT_WIDTH;
-            inputArray[0][y][x][0] = r;
-            inputArray[0][y][x][1] = g;
-            inputArray[0][y][x][2] = b;
-        }
-        return inputArray;
-    }
-
-    /**
-     * Выполняет центральную обрезку Bitmap до заданных размеров targetWidth x targetHeight.
-     * Если исходное изображение меньше требуемого размера, оно сначала масштабируется.
-     */
-    private Bitmap cropBitmap(Bitmap bitmap, int targetWidth, int targetHeight) {
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-
-        // Если изображение меньше требуемых размеров, масштабируем его так, чтобы оно было не меньше целевого размера.
-        if (width < targetWidth || height < targetHeight) {
-            float scale = Math.max((float) targetWidth / width, (float) targetHeight / height);
-            int scaledWidth = Math.round(scale * width);
-            int scaledHeight = Math.round(scale * height);
-            bitmap = Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true);
-            width = bitmap.getWidth();
-            height = bitmap.getHeight();
-        }
-        // Вычисляем координаты левого верхнего угла для центральной обрезки
-        int x = (width - targetWidth) / 2;
-        int y = (height - targetHeight) / 2;
-
-        return Bitmap.createBitmap(bitmap, x, y, targetWidth, targetHeight);
-    }
-
-    /**
-     * Вычисляет среднеквадратичную ошибку (MSE) между оригинальным и реконструированным изображениями.
-     */
-    private float calculateMSE(float[][][][] original, float[][][][] reconstructed) {
-        float sum = 0;
-        int count = 0;
-        // Проходим по высоте и ширине масштабированного изображения
-        for (int y = 0; y < MODEL_INPUT_HEIGHT; y++) {
-            for (int x = 0; x < MODEL_INPUT_WIDTH; x++) {
-                for (int c = 0; c < 3; c++) {
-                    float diff = original[0][y][x][c] - reconstructed[0][y][x][c];
-                    sum += diff * diff;
-                    count++;
-                }
-            }
-        }
-        return sum / count;
     }
 
     private void scrollingText(EditText nameDish) {

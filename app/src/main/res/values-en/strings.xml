@@ -182,21 +182,28 @@
     <string name="example_hint_ingredients_filter">List the ingredients separated by commas</string>
     <string name="voice_language">en-US</string>
     <string name="voice_promt">Tell the ingredients...</string>
+    <string name="voice_promt_ai">Tell the criteria...</string>
     <string name="voice_promt_search">Name the dish</string>
     <string name="toast_voice_not_supported">Voice input is not supported</string>
     <string name="toast_unable_recognize_ingredients">Unable to recognize ingredients</string>
+    <string name="toast_unable_recognize_criteria">Unable to recognize criteria</string>
     <string name="toast_without_permission">Voice input is not available without permission.</string>
     <string name="ai">AI</string>
     <string name="input_criteria_ai">Enter criteria to search for dishes:</string>
     <string name="additional_info_ai">(the number of requests is limited)</string>
     <string name="example_ai_input">For example: Italian cuisine, vegetarian, up to 30 minutes of preparation</string>
-    <string name="promt1">I have a file with recipes. Here are its contents:\n</string>
-    <string name="promt2">"\n\nFind dishes matching the entered criteria using only the data in this file. Return ONLY the dish IDs, separated by commas, without unnecessary words or explanations.\nCriteria: "</string>
+    <string name="promt1">I have a recipe file with the following structure:\n</string>
+    <string name="promt2">"\n\nFind recipe IDs by criteria (return only IDs separated by commas):"</string>
     <string name="toast_search_ai1">"Found "</string>
     <string name="toast_search_ai2">" recipes"</string>
     <string name="toast_not_found_ai_recipes">We couldn\'t find any recipes matching your request.</string>
     <string name="toast_fail_found_ai">"Error: "</string>
     <string name="toast_not_recipes">No recipes found</string>
+    <string name="btn_dialog_intro">Got it, thank you!</string>
+    <string name="AI_dialog_title">AI recipe assistant</string>
+    <string name="AI_dialog_message">HOW TO USE:\n\n1️⃣ Enter your query in the search field\n   • \"Italian soups under 30 minutes\"\n   • \"Gluten-free vegetarian dishes\"\n   • \"Quick desserts with apples\"\n\n2️⃣ Click on the icon \'AI\' AI assistant\n\n3️⃣ Wait for a response - the recipes will appear in the list</string>
+    <string name="AI_dialog_warning">⚠️ IMPORTANT INFORMATION:\n\n• The number of requests per day is limited\n• Request processing may take some time\n• An active internet connection is required to work\n• The more precise the request, the faster the result will be\n• If loading takes a long time, try simplifying the request</string>
+    <string name="toast_enter_reguest">Enter your query in the search box</string>
 
 
     <string-array name="categories_array">

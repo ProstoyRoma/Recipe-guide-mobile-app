@@ -330,6 +330,17 @@ public class DishAdapter extends ArrayAdapter<Recipe> {
         return dishFilter;
     }
 
+    public void updateData(List<Recipe> newDishes) {
+        this.originalDishes.clear();
+        this.originalDishes.addAll(newDishes);
+
+        this.filteredDishes.clear();
+        this.filteredDishes.addAll(newDishes);
+
+        notifyDataSetChanged();
+    }
+
+
     private boolean applyAllFilters(Recipe dish, CharSequence constraint) {
         boolean languageRussian = sharedPreferences.getBoolean("language", false);
 

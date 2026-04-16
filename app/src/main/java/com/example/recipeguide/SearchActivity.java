@@ -51,6 +51,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.common.util.concurrent.FutureCallback;
@@ -59,6 +60,10 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.ai.java.GenerativeModelFutures;
 import com.google.firebase.ai.type.Content;
 import com.google.firebase.ai.type.GenerateContentResponse;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -81,14 +86,15 @@ public class SearchActivity extends AppCompatActivity {
     ListView listView;
     BaseAdActivity baseAdActivity;
     private ImageButton btnFilter, btnAI;
-    private FrameLayout filterContainer, aiContainer;
+    private FrameLayout filterContainer;
     private ProgressBar progressBar;
     private DishAdapter adapter;
+    private ArrayList<Recipe> allRecipes; // Храним все рецепты
+    private boolean isAISearchActive = false; // Флаг активного ИИ-поиска
     private DatabaseHandler databaseHelper;
     private String lastQuery = ""; // хранит последний текст в SearchView
     private FilterOptions currentFilters = new FilterOptions();
     private boolean isFilterVisible = false;
-    private boolean isAIVisible = false;
     private boolean isAddingItem = false;
     private boolean isSettingSelection = false;
     private boolean isFiltering = false;
@@ -102,8 +108,8 @@ public class SearchActivity extends AppCompatActivity {
     // Элементы фильтра
     private Spinner spinnerDiet, spinnerCategory;
     private AutoCompleteTextView actvCuisine;
-    private EditText etMaxTime, etIngredients, etAI;
-    private Button btnClear, btnApply, btnClearAI, btnApplyAI;
+    private EditText etMaxTime, etIngredients;
+    private Button btnClear, btnApply;
     private ImageButton btnMic;
     private LinearLayout selectedCategoriesContainer;
     private LinearLayout selectedCuisinesContainer;
@@ -116,7 +122,7 @@ public class SearchActivity extends AppCompatActivity {
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
     private static final int REQUEST_VOICE_INPUT = 100;
     ExecutorService executor = Executors.newSingleThreadExecutor();
-
+    private String cachedFileContent = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,6 +197,12 @@ public class SearchActivity extends AppCompatActivity {
             }
         });*/
 
+        if (!isDialogShown()) {
+            // Небольшая задержка для плавного появления
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                showAIIntroBottomSheet();
+            }, 500);
+        }
     }
 
     private void initViews() {
@@ -199,12 +211,11 @@ public class SearchActivity extends AppCompatActivity {
         btnFilter = findViewById(R.id.btn_filter);
         btnAI = findViewById(R.id.btn_ai);
         filterContainer = findViewById(R.id.filter_container);
-        aiContainer = findViewById(R.id.ai_container);
         progressBar = findViewById(R.id.uploadProgressBar);
 
         databaseHelper = new DatabaseHandler(this);
-        ArrayList<Recipe> dishes = databaseHelper.getAllRecipe();
-        adapter = new DishAdapter(this, dishes);
+        allRecipes = databaseHelper.getAllRecipe();
+        adapter = new DishAdapter(this, allRecipes);
         listView.setAdapter(adapter);
     }
 
@@ -225,6 +236,9 @@ public class SearchActivity extends AppCompatActivity {
                     applySearchAndFilters(() -> {
                     });
                 } else {
+                    if (isAISearchActive && (lastQuery.isEmpty() || lastQuery.length() < 2)) {
+                        resetToFullList();
+                    }
                     adapter.getFilter().filter(lastQuery);
                 }
                 return false;
@@ -233,6 +247,14 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextChange(String newText) {
                 lastQuery = newText != null ? newText : "";
+
+                if (lastQuery.isEmpty()) {
+                    resetToFullList();
+                } else if (isAISearchActive) {
+                    // Если активен ИИ-поиск и пользователь вводит текст, сбрасываем
+                    resetToFullList();
+                }
+
                 if (isFiltering) {
                     applySearchAndFilters(() -> {
                     });
@@ -241,6 +263,10 @@ public class SearchActivity extends AppCompatActivity {
                 }
                 return false;
             }
+        });
+        searchView.setOnCloseListener(() -> {
+            resetToFullList();
+            return false;
         });
     }
 
@@ -274,39 +300,39 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
     }
+
     private void setupAIButton() {
         btnAI.setOnClickListener(v -> {
-            if (isAIVisible) {
-                hideAIPanel();
-            } else {
-                showAIPanel();
-                isAIVisible = true;
+            String query = searchView.getQuery().toString().trim();
+
+            if (query.isEmpty()) {
+                Toast.makeText(this, R.string.toast_enter_reguest, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            progressBar.setVisibility(View.VISIBLE);
+
+            // Показываем индикатор загрузки (опционально)
+            Toast.makeText(this, R.string.toast_applying_ai, Toast.LENGTH_SHORT).show();
+
+            if (!lastQuery.isEmpty()) {
+                sendToAI(lastQuery);
             }
         });
     }
-
+    private void resetToFullList() {
+        if (isAISearchActive) {
+            adapter.updateData(allRecipes);
+            isAISearchActive = false;
+        }
+    }
     private void showFilterPanel() {
         if (spinnerCategory == null) {
             initFilterViews();
-        }
-        if(isAIVisible){
-            hideAIPanel();
         }
         updateContainersVisibility();
         filterContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_down));
         filterContainer.setVisibility(View.VISIBLE);
         isFilterVisible = true;
-    }
-    private void showAIPanel() {
-        if (etAI == null) {
-            initAIViews();
-        }
-        if(isFilterVisible){
-            hideFilterPanel();
-        }
-        aiContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_down));
-        aiContainer.setVisibility(View.VISIBLE);
-        isAIVisible = true;
     }
 
     private void hideFilterPanel() {
@@ -332,30 +358,6 @@ public class SearchActivity extends AppCompatActivity {
         filterContainer.startAnimation(slideUp);
         isFilterVisible = false;
     }
-    private void hideAIPanel() {
-        Animation slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up);
-        slideUp.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                // Анимация началась
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                // Скрываем контейнер только после завершения анимации
-                aiContainer.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-                // Не используется
-            }
-        });
-
-        aiContainer.startAnimation(slideUp);
-        isAIVisible = false;
-    }
-
     private void initFilterViews() {
         View filterView = findViewById(R.id.filter_view);
 
@@ -537,63 +539,125 @@ public class SearchActivity extends AppCompatActivity {
             clearAllFilters();
         });
     }
-    private void initAIViews() {
-        View filterView = findViewById(R.id.ai_view);
-
-        etAI = filterView.findViewById(R.id.et_ai_search);
-        btnApplyAI = filterView.findViewById(R.id.btn_apply);
-        btnClearAI = filterView.findViewById(R.id.btn_clear);
 
 
-        // Кнопка "Применить"
-        btnApplyAI.setOnClickListener(v -> {
-            progressBar.setVisibility(View.VISIBLE);
-            btnApplyAI.setEnabled(false);
 
-            // Показываем индикатор загрузки (опционально)
-            Toast.makeText(this, R.string.toast_applying_ai, Toast.LENGTH_SHORT).show();
-
-            String userMessage = etAI.getText().toString().trim();
-            if (!userMessage.isEmpty()) {
-                sendToAI(userMessage);
-            }
-        });
-
-        // Кнопка "Сбросить"
-        btnClearAI.setOnClickListener(v -> {
-            btnClearAI.setEnabled(false);
-            etAI.setText("");
-            clearSearchResults();  // Возвращаем полный список
-            Toast.makeText(this, R.string.toast_reset_filters, Toast.LENGTH_SHORT).show();
-            btnClearAI.setEnabled(true);
-        });
+    private String getCachedFileContent() {
+        if (cachedFileContent == null) {
+            long start = System.currentTimeMillis();
+            cachedFileContent = loadFileFromAssets(this, "output.toon");
+            Log.d("AI_TIMING", "📁 Файл загружен в кэш за " + (System.currentTimeMillis() - start) + " мс");
+        }
+        return cachedFileContent;
     }
-
-
     private void sendToAI(String userMessage) {
-        // Загружаем содержимое файла (один раз, можно закешировать)
-        String fileContent = loadFileFromAssets(this,"output.toon");
+        final long startTime = System.currentTimeMillis();
+        Log.d("AI_TIMING", "🚀 Начало запроса: " + new java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(new java.util.Date(startTime)));
 
-        // Формируем запрос
+        String fileContent = getCachedFileContent(); // Кэшируем файл!
         String fullPrompt = getString(R.string.promt1) + fileContent +
                 getString(R.string.promt2) + userMessage;
 
         GenerativeModelFutures model = MyApplication.getAiModel();
         Content prompt = new Content.Builder().addText(fullPrompt).build();
+
+        // Используем потоковый режим
+        Publisher<GenerateContentResponse> streamingResponse = model.generateContentStream(prompt);
+
+        StringBuilder fullResponse = new StringBuilder();
+
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        Log.d("AI_TIMING", "🟢 Ответ получен в: " + new java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(new java.util.Date(endTime)));
+        Log.d("AI_TIMING", "⏱️ Общее время выполнения: " + duration + " мс (" + String.format("%.2f", duration / 1000.0) + " сек)");
+
+        streamingResponse.subscribe(new Subscriber<GenerateContentResponse>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(GenerateContentResponse chunk) {
+                String chunkText = chunk.getText();
+                if (chunkText != null) {
+                    fullResponse.append(chunkText);
+
+                    // Логируем получение каждого чанка
+                    long currentTime = System.currentTimeMillis();
+                    Log.d("AI_TIMING", "📦 Получен чанк через " + (currentTime - startTime) + " мс, размер: " + chunkText.length());
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                Log.e("AI_TIMING", "❌ Ошибка: " + t.getMessage());
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(SearchActivity.this, R.string.toast_fail_found_ai + t.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }
+
+            @Override
+            public void onComplete() {
+                long endTime = System.currentTimeMillis();
+                Log.d("AI_TIMING", "✅ Полный ответ получен за " + (endTime - startTime) + " мс");
+
+                List<String> recipeIds = parseRecipeIds(fullResponse.toString());
+
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    if (recipeIds != null && !recipeIds.isEmpty()) {
+                        displaySearchResults(recipeIds);
+                    } else {
+                        Toast.makeText(SearchActivity.this, R.string.toast_not_recipes, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+/*    private void sendToAI(String userMessage) {
+        final long startTime = System.currentTimeMillis();
+        Log.d("AI_TIMING", "🔵 sendToAI начал работу в: " + new java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(new java.util.Date(startTime)));
+        Log.d("AI_TIMING", "📝 Запрос пользователя: " + userMessage);
+        // Загружаем содержимое файла (один раз, можно закешировать)
+        String fileContent = loadFileFromAssets(this, "output.toon");
+        Log.d("AI_TIMING", "📁 Файл загружен, размер: " + fileContent.length() + " символов");
+
+        // Формируем запрос
+        String fullPrompt = getString(R.string.promt1) + fileContent +
+                getString(R.string.promt2) + userMessage;
+        Log.d("AI_TIMING", "📤 Промпт отправлен в Gemini API");
+        Log.d("AI_TIMING", "📏 Длина промпта: " + fullPrompt.length() + " символов");
+
+        GenerativeModelFutures model = MyApplication.getAiModel();
+        Content prompt = new Content.Builder().addText(fullPrompt).build();
         ListenableFuture<GenerateContentResponse> response = model.generateContent(prompt);
+        long endTime = System.currentTimeMillis();
+        long duration = endTime - startTime;
+        Log.d("AI_TIMING", "🟢 Ответ получен в: " + new java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(new java.util.Date(endTime)));
+        Log.d("AI_TIMING", "⏱️ Общее время выполнения: " + duration + " мс (" + String.format("%.2f", duration / 1000.0) + " сек)");
 
         Futures.addCallback(response, new FutureCallback<GenerateContentResponse>() {
             @Override
             public void onSuccess(GenerateContentResponse result) {
                 String aiResponse = result.getText();
+                long endTime = System.currentTimeMillis();
+                long duration = endTime - startTime;
+                Log.d("AI_TIMING", "🟢 Ответ получен в: " + new java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(new java.util.Date(endTime)));
+                Log.d("AI_TIMING", "⏱️ Общее время выполнения: " + duration + " мс (" + String.format("%.2f", duration / 1000.0) + " сек)");
+                Log.d("AI_TIMING", "📥 Длина ответа: " + (aiResponse != null ? aiResponse.length() : 0) + " символов");
+                Log.d("AI_TIMING", "📄 Ответ ИИ: " + (aiResponse != null ? aiResponse.substring(0, Math.min(aiResponse.length(), 200)) + "..." : "null"));
 
                 // Парсим ответ и получаем список ID
                 List<String> recipeIds = parseRecipeIds(aiResponse);
+                Log.d("AI_TIMING", "🔍 Найдено ID рецептов: " + (recipeIds != null ? recipeIds.size() : 0));
 
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    btnApplyAI.setEnabled(true);
-                    hideAIPanel();
+                    //btnApplyAI.setEnabled(true);
+                    //hideAIPanel();
 
                     if (recipeIds != null && !recipeIds.isEmpty()) {
                         // Показываем найденные рецепты
@@ -609,14 +673,56 @@ public class SearchActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Throwable t) {
+                long endTime = System.currentTimeMillis();
+                long duration = endTime - startTime;
+
+                Log.e("AI_TIMING", "🔴 Ошибка в: " + new java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.getDefault()).format(new java.util.Date(endTime)));
+                Log.e("AI_TIMING", "⏱️ Время до ошибки: " + duration + " мс (" + String.format("%.2f", duration / 1000.0) + " сек)");
+                Log.e("AI_TIMING", "❌ Ошибка: " + t.getMessage(), t);
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
-                    btnApplyAI.setEnabled(true);
+                    //btnApplyAI.setEnabled(true);
                     Toast.makeText(SearchActivity.this,
                             getString(R.string.toast_fail_found_ai) + t.getMessage(), Toast.LENGTH_LONG).show();
                 });
             }
         }, executor);
+    }*/
+
+    private void showAIIntroBottomSheet() {
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.dialog_ai_intro, null);
+
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.setCancelable(false);
+
+        TextView tvTitle = bottomSheetView.findViewById(R.id.tv_dialog_title);
+        TextView tvMessage = bottomSheetView.findViewById(R.id.tv_dialog_message);
+        TextView tvWarning = bottomSheetView.findViewById(R.id.tv_dialog_warning);
+        Button btnOk = bottomSheetView.findViewById(R.id.btn_ok);
+
+        tvTitle.setText(R.string.AI_dialog_title);
+        String message = getString(R.string.AI_dialog_message);
+
+        String warning = getString(R.string.AI_dialog_warning);
+
+        tvMessage.setText(message);
+        tvWarning.setText(warning);
+        btnOk.setOnClickListener(v -> {
+            saveDialogShownPreference();
+            bottomSheetDialog.dismiss();
+        });
+
+        bottomSheetDialog.show();
+    }
+    private void saveDialogShownPreference() {
+        SharedPreferences prefs = getSharedPreferences("AI_DIALOG", MODE_PRIVATE);
+        prefs.edit().putBoolean("ai_intro_shown", true).apply();
+    }
+
+    private boolean isDialogShown() {
+        SharedPreferences prefs = getSharedPreferences("AI_DIALOG", MODE_PRIVATE);
+        return prefs.getBoolean("ai_intro_shown", false);
     }
     private List<String> parseRecipeIds(String aiResponse) {
         List<String> ids = new ArrayList<>();
@@ -690,6 +796,15 @@ public class SearchActivity extends AppCompatActivity {
             return;
         }
 
+        adapter.updateData(recipes);
+        isAISearchActive = true;
+
+        Toast.makeText(this,
+                getString(R.string.toast_search_ai1) + recipes.size() + getString(R.string.toast_search_ai2),
+                Toast.LENGTH_SHORT).show();
+
+        // Прокручиваем к началу списка
+        listView.smoothScrollToPosition(0);
         // Создаём новый адаптер с результатами
         DishAdapter resultAdapter = new DishAdapter(this, recipes);
         listView.setAdapter(resultAdapter);
@@ -697,12 +812,14 @@ public class SearchActivity extends AppCompatActivity {
         // Сохраняем результаты для последующего использования
         adapter = resultAdapter;
     }
+
     private void clearSearchResults() {
         // Возвращаем полный список рецептов
         ArrayList<Recipe> allRecipes = databaseHelper.getAllRecipe();
         adapter = new DishAdapter(this, allRecipes);
         listView.setAdapter(adapter);
     }
+
     public String loadFileFromAssets(Context context, String filename) {
         StringBuilder content = new StringBuilder();
         try {
@@ -843,7 +960,12 @@ public class SearchActivity extends AppCompatActivity {
         String language = isRussian ? "ru-RU" : "en-US";
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language);
 
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_promt));
+        if (isFilterVisible) {
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_promt));
+        }else{
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.voice_promt_ai));
+
+        }
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
 
         try {
@@ -861,10 +983,13 @@ public class SearchActivity extends AppCompatActivity {
             ArrayList<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             if (results != null && !results.isEmpty()) {
                 String spokenText = results.get(0);
-                appendIngredient(spokenText);
+                if (isFilterVisible) {
+                    appendIngredient(spokenText);
+                }
             }
         }
     }
+
 
     private void appendIngredient(String spokenText) {
         String currentText = etIngredients.getText().toString();

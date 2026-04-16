@@ -94,8 +94,8 @@ dependencies {
 
     implementation ("com.google.code.gson:gson:2.8.9")
 
-    implementation ("org.tensorflow:tensorflow-lite-select-tf-ops:2.9.0") // 🔥 Flex-операторы
-    implementation ("org.tensorflow:tensorflow-lite:2.9.0") // Основной TFLite
+    //implementation ("org.tensorflow:tensorflow-lite-select-tf-ops:2.9.0") // 🔥 Flex-операторы
+    //implementation ("org.tensorflow:tensorflow-lite:2.9.0") // Основной TFLite
     //implementation ("org.tensorflow:tensorflow-lite:2.10.0")
 
     implementation ("com.yandex.android:mobileads:7.16.0")
